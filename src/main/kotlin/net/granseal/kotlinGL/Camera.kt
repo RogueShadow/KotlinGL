@@ -4,12 +4,15 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class Camera {
-    private val pitchMax = (Math.PI.toFloat()/2f)*.9f
+    private val pitchMax = 89.0
     private var pos: Vector3f = Vector3f()
     private var up = Vector3f(0f,1f,0f)
     private var front = Vector3f(0f,0f,1f)
-    var pitch = 0f
-    var yaw = 0f
+    private var moveDelta = Vector3f()
+    var sensativity = 40f
+    var cameraSpeed = 6f
+    var pitch = 0.0
+    var yaw = 0.0
     var view = Matrix4f()
     var projection = Matrix4f()
 
@@ -21,26 +24,33 @@ class Camera {
         pos.x += deltaX
         pos.y += deltaY
         pos.z += deltaZ
-        cameraLook()
     }
     fun position(x: Float, y: Float, z: Float){
         pos = Vector3f(x,y,z)
     }
-    fun updateCamera(deltaX: Float, deltaY: Float){
-        yaw -= deltaX
-        pitch += deltaY
+    fun updateCamera(deltaX: Float, deltaY: Float, delta: Float){
+        yaw -= deltaX*delta*sensativity
+        pitch +=  deltaY*delta*sensativity
 
         if (pitch > pitchMax)pitch = pitchMax
 
         if (pitch < -pitchMax)pitch = -pitchMax
 
-        front.x = cos(pitch) * cos(yaw)
-        front.y = sin(pitch)
-        front.z = cos(pitch) * sin(yaw)
+        front.x = cos(Math.toRadians(pitch).toFloat()) * cos(Math.toRadians(yaw).toFloat())
+        front.y = sin(Math.toRadians(pitch).toFloat())
+        front.z = cos(Math.toRadians(pitch).toFloat()) * sin(Math.toRadians(yaw).toFloat())
 
         front.normalize()
 
+        pos += (moveDelta - pos).normalize().scale(delta*cameraSpeed)
+
         cameraLook()
+
+        moveDelta.apply {
+            x = pos.x
+            y = pos.y
+            z = pos.z
+        }
     }
 
     fun cameraLook() = lookAt(pos + front)
@@ -56,34 +66,34 @@ class Camera {
             Vector4f(0f,0f,0f,1f)).transpose()
         val posMat = Matrix4f.translate(-pos.x,-pos.y,-pos.z)
         front = d.negate()
-
         view = viewMatrix * posMat
     }
 
     fun forward(amount: Float){
-        pos += front scale amount
-        cameraLook()
+        moveDelta += front scale amount
+        
     }
     fun backword(amount: Float){
-        pos -= front scale amount
-        cameraLook()
+        moveDelta -= front scale amount
+        
     }
     fun right(amount: Float){
-        pos -= (front cross up).normalize() scale amount
-        cameraLook()
+        moveDelta -= (front cross up).normalize() scale amount
+        
     }
     fun left(amount: Float){
-        pos += (front cross up).normalize() scale amount
-        cameraLook()
+        moveDelta += (front cross up).normalize() scale amount
+        
     }
     fun up(amount: Float){
         val r = (up cross front).normalize()
         val u = (front cross r).normalize()
-        pos += u scale amount
+        moveDelta += u scale amount
+        
     }
     fun down(amount: Float){
         val r = (up cross front).normalize()
         val u = (front cross r).normalize()
-        pos -= u scale amount
+        moveDelta -= u scale amount
     }
 }

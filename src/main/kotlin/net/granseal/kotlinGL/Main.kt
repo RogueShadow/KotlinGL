@@ -44,17 +44,16 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         lightEntity.scale(0.2f,0.2f,0.2f)
         entities.add(lightEntity)
         entities.add(Entity(VertexArrayObject(Model.getCube().apply { },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube().apply { objectColor = Vector3f(1f,0.5f,0.31f) },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube("container.jpg").apply { objectColor = Vector3f(1f,0.5f,0.31f) },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube("awesomeface2.png").apply { objectColor = Vector3f(1f,0.5f,0.31f) },program)))
+        entities.add(Entity(VertexArrayObject(Model.getCube().apply {  },program)))
+        entities.add(Entity(VertexArrayObject(Model.getCube("container.jpg").apply {  },program)))
+        entities.add(Entity(VertexArrayObject(Model.getCube("awesomeface2.png").apply {  },program)))
 
 
 
         //entities[0].rotate(90f,1f,0f,0f)
         //entities[0].scale(20f,1f,20f)
 
-        cam.position(0f,0f,-3f)
-        cam.yaw = 1f
+        cam.yaw = 2.0
 
     }
 
@@ -93,7 +92,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         val radius = 10f
         //cam.pos.x = sin(getTimePassed()*0.5f).toFloat() * radius
         //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
-        cam.updateCamera(deltax*1f*delta,deltay*1f*delta)
+
 
         if (keyPressed(GLFW_KEY_SPACE)){
             moveBoxes = true
@@ -111,7 +110,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         }
 
 
-
+        cam.updateCamera(deltax,deltay,delta)
         //view = cam.lookAt(Vector3f(0f,0f,0f))
         program.setUniformMat4("view",cam.view)
         light.setUniformMat4("view",cam.view)

@@ -7,11 +7,9 @@ package net.granseal.kotlinGL
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.*
 import org.lwjgl.system.*
-
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.opengl.GL33.*
-import java.io.File
 import kotlin.properties.Delegates
 import kotlin.random.Random
 
@@ -33,6 +31,7 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
     private var lastx = 0f
     private var lasty = 0f
     private var firstMouse = true
+
 
     // Set Title
     fun setTitle(title: String){
@@ -179,7 +178,7 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
                 lasty = mousey
                 firstMouse = false
             }
-            update(timer.delta,lastx - mousex, lasty - mousey)
+            update(timer.delta, lastx - mousex,lasty - mousey)
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
