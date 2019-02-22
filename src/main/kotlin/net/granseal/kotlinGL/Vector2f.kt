@@ -28,36 +28,32 @@ package net.granseal.kotlinGL
 import java.nio.FloatBuffer
 
 /**
- * This class represents a (x,y,z)-Vector. GLSL equivalent to vec3.
+ * This class represents a (x,y)-Vector. GLSL equivalent to vec2.
  *
  * @author Heiko Brumme
  */
-class Vector3f {
+class Vector2f {
 
     var x: Float = 0.toFloat()
     var y: Float = 0.toFloat()
-    var z: Float = 0.toFloat()
 
     /**
-     * Creates a default 3-tuple vector with all values set to 0.
+     * Creates a default 2-tuple vector with all values set to 0.
      */
     constructor() {
         this.x = 0f
         this.y = 0f
-        this.z = 0f
     }
 
     /**
-     * Creates a 3-tuple vector with specified values.
+     * Creates a 2-tuple vector with specified values.
      *
      * @param x x value
      * @param y y value
-     * @param z z value
      */
-    constructor(x: Float, y: Float, z: Float) {
+    constructor(x: Float, y: Float) {
         this.x = x
         this.y = y
-        this.z = z
     }
 
     /**
@@ -66,7 +62,7 @@ class Vector3f {
      * @return Squared length of this vector
      */
     fun lengthSquared(): Float {
-        return x * x + y * y + z * z
+        return x * x + y * y
     }
 
     /**
@@ -83,13 +79,9 @@ class Vector3f {
      *
      * @return Normalized vector
      */
-    fun normalize(): Vector3f {
-        val len = length()
-        return if (len > 0){
-            this / length()
-        }else {
-            this
-        }
+    fun normalize(): Vector2f {
+        val length = length()
+        return this / length
     }
 
     /**
@@ -99,11 +91,10 @@ class Vector3f {
      *
      * @return Sum of this + other
      */
-    operator fun plus(other: Vector3f): Vector3f {
+    operator fun plus(other: Vector2f): Vector2f {
         val x = this.x + other.x
         val y = this.y + other.y
-        val z = this.z + other.z
-        return Vector3f(x, y, z)
+        return Vector2f(x, y)
     }
 
     /**
@@ -111,7 +102,9 @@ class Vector3f {
      *
      * @return Negated vector
      */
-    fun negate() = scale(-1f)
+    fun negate(): Vector2f {
+        return scale(-1f)
+    }
 
     /**
      * Subtracts this vector from another vector.
@@ -120,7 +113,9 @@ class Vector3f {
      *
      * @return Difference of this - other
      */
-    operator fun minus(other: Vector3f) = this + other.negate()
+    operator fun minus(other: Vector2f): Vector2f {
+        return this + other.negate()
+    }
 
     /**
      * Multiplies a vector by a scalar.
@@ -129,11 +124,10 @@ class Vector3f {
      *
      * @return Scalar product of this * scalar
      */
-    infix fun scale(scalar: Float): Vector3f {
+    infix fun scale(scalar: Float): Vector2f {
         val x = this.x * scalar
         val y = this.y * scalar
-        val z = this.z * scalar
-        return Vector3f(x, y, z)
+        return Vector2f(x, y)
     }
 
     /**
@@ -143,7 +137,9 @@ class Vector3f {
      *
      * @return Scalar quotient of this / scalar
      */
-    operator fun div(scalar: Float) = scale(1f / scalar)
+    operator fun div(scalar: Float): Vector2f {
+        return scale(1f / scalar)
+    }
 
     /**
      * Calculates the dot product of this vector with another vector.
@@ -152,22 +148,8 @@ class Vector3f {
      *
      * @return Dot product of this * other
      */
-    operator fun times(other: Vector3f): Float {
-        return this.x * other.x + this.y * other.y + this.z * other.z
-    }
-
-    /**
-     * Calculates the dot product of this vector with another vector.
-     *
-     * @param other The other vector
-     *
-     * @return Cross product of this x other
-     */
-    infix fun cross(other: Vector3f): Vector3f {
-        val x = this.y * other.z - this.z * other.y
-        val y = this.z * other.x - this.x * other.z
-        val z = this.x * other.y - this.y * other.x
-        return Vector3f(x, y, z)
+    infix fun dot(other: Vector2f): Float {
+        return this.x * other.x + this.y * other.y
     }
 
     /**
@@ -179,8 +161,8 @@ class Vector3f {
      *
      * @return Linear interpolated vector
      */
-    fun lerp(other: Vector3f, alpha: Float): Vector3f {
-        return this.scale(1f - alpha) + (other.scale(alpha))
+    fun lerp(other: Vector2f, alpha: Float): Vector2f {
+        return this.scale(1f - alpha) + other.scale(alpha)
     }
 
     /**
@@ -189,12 +171,8 @@ class Vector3f {
      * @param buffer The buffer to store the vector data
      */
     fun toBuffer(buffer: FloatBuffer) {
-        buffer.put(x).put(y).put(z)
+        buffer.put(x).put(y)
         buffer.flip()
-    }
-
-    override fun toString(): String {
-        return "Vector3f($x,$y,$z)"
     }
 
 }
