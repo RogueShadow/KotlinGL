@@ -37,15 +37,20 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         light.setUniformMat4("projection",cam.projection)
 
         val lightEntity = Entity(VertexArrayObject(Model.getCube().apply { objectColor = Vector3f(1f,0.5f,0.31f) },light))
+        val floor = Entity(VertexArrayObject(Model.getPlane("GroundForest003_COL_VAR1_3K.jpg"),program))
+        floor.rotate(90f,1f,0f,0f)
+        floor.scale(40f,40f,40f)
+        floor.position(0f,-1f,0f)
 
         lightEntity.position(1.2f,1f,2f)
         program.setUniform3f("lightPos",1.2f,1f,2f)
 
         lightEntity.scale(0.2f,0.2f,0.2f)
         entities.add(lightEntity)
-        entities.add(Entity(VertexArrayObject(Model.getCube().apply { },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube().apply {  },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube("container.jpg").apply {  },program)))
+        entities.add(floor)
+        entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply { },program)))
+        entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
+        entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
         entities.add(Entity(VertexArrayObject(Model.getCube("awesomeface2.png").apply {  },program)))
 
 
@@ -94,7 +99,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
 
 
-        if (keyPressed(GLFW_KEY_SPACE)){
+        if (keyPressed(GLFW_KEY_LEFT_SHIFT)){
             moveBoxes = true
         }else {
             moveBoxes = false
@@ -103,9 +108,8 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
             if (keyPressed(GLFW_KEY_S)) cam.backword(camSpeed * delta)
             if (keyPressed(GLFW_KEY_A)) cam.right(camSpeed * delta)
             if (keyPressed(GLFW_KEY_D)) cam.left(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_Z)) cam.up(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_C)) cam.down(camSpeed * delta)
-
+            if (keyPressed(GLFW_KEY_SPACE)) cam.up(camSpeed * delta)
+            if (keyPressed(GLFW_KEY_LEFT_CONTROL)) cam.down(camSpeed * delta)
             if (keyPressed(GLFW_KEY_X)) cam.lookAt(Vector3f())
         }
 
