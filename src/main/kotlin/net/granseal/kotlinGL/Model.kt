@@ -1,5 +1,7 @@
 package net.granseal.kotlinGL
 
+import java.io.File
+
 data class Model(
     var verticies: FloatArray = floatArrayOf(),
     var textureCoords: FloatArray? = null,
@@ -42,6 +44,63 @@ data class Model(
     fun normOffset() = 3L * FloatLength.toLong()
 
         companion object {
+
+            fun loadObj(file: String): Model {
+                val obj = File(file).readLines()
+                val verts = mutableListOf<Float>()
+                val tex = mutableListOf<Float>()
+                val normals = mutableListOf<Float>()
+                val indicies = mutableListOf<Int>()
+                val texActual = mutableListOf<Float>()
+                val norActual = mutableListOf<Float>()
+                obj.forEach {
+                    val line = it.split(" ")
+                    if (line[0] == "v"){
+                        verts += line[1].toFloat()
+                        verts += line[2].toFloat()
+                        verts += line[3].toFloat()
+                    }
+                    if (line[0] == "vt"){
+                        tex += line[1].toFloat()
+                        tex += line[2].toFloat()
+                    }
+                    if (line[0] == "vn"){
+                        normals += line[1].toFloat()
+                        normals += line[2].toFloat()
+                        normals += line[3].toFloat()
+                    }
+                    if (line[0] == "f"){
+                        var f = line[1].split("/")
+                        indicies += f[0].toInt()
+                        if (f.size > 1){
+                            texActual += tex[f[1].toInt()]
+                        }
+                        if (f.size > 2){
+                            norActual += normals[f[2].toInt()]
+                        }
+                        f = line[2].split("/")
+                        indicies += f[0].toInt()
+                        if (f.size > 1){
+                            texActual += tex[f[1].toInt()]
+                        }
+                        if (f.size > 2){
+                            norActual += normals[f[2].toInt()]
+                        }
+                        f = line[3].split("/")
+                        indicies += (f[0].toInt()-1)
+                        if (f.size > 1){
+                            texActual += tex[f[1].toInt()-1]
+                        }
+                        if (f.size > 2){
+                            norActual += normals[f[2].toInt()-1]
+                        }
+                    }
+
+                }
+
+                return Model(verts.toFloatArray(),texActual.toFloatArray(),indicies.toIntArray(),norActual.toFloatArray())
+            }
+
 
             fun getPlane(tex: String = ""): Model {
                 val plane = Model().apply {
