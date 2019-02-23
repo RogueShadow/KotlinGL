@@ -15,6 +15,7 @@ class ShaderProgram(vert: String, frag: String){
         val success = glGetProgrami(id, GL_LINK_STATUS)
         if (success != 1){
             println(glGetProgramInfoLog(id))
+            throw Exception("Shader failed to complile")
         }else{
             glDeleteShader(vid)
             glDeleteShader(fid)
@@ -50,5 +51,41 @@ class ShaderProgram(vert: String, frag: String){
     fun setUniform3f(name: String, v1: Float, v2: Float, v3: Float) {
         use()
         glUniform3f(glGetUniformLocation(id, name), v1, v2, v3)
+    }
+    fun setMaterial(mat: Material){
+        setInt("material.diffuse",mat.diffuse)
+        setVec3("material.specular",mat.specular)
+        setFloat("material.shininess",mat.shininess)
+    }
+    fun setLight(light: Light){
+        setVec3("light.ambient",light.ambient)
+        setVec3("light.diffuse",light.diffuse)
+        setVec3("light.specular",light.specular)
+    }
+}
+
+data class Material(val diffuse: Int,
+                    val specular: Vector3f,
+                    val shininess: Float){
+    companion object {
+        fun getDefaultMaterial(): Material {
+            return Material(
+                0,
+                Vector3f(.5f,.5f,.5f),
+                32f
+            )
+        }
+    }
+}
+
+data class Light(val ambient: Vector3f,
+                 val diffuse: Vector3f,
+                 val specular: Vector3f){
+    companion object {
+        fun getDefaultLight(): Light = Light(
+            Vector3f(.2f,.2f,.2f),
+            Vector3f(.5f,.5f,.5f),
+            Vector3f(1f,1f,1f)
+        )
     }
 }

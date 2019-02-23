@@ -5,7 +5,10 @@ import kotlin.math.sin
 
 class Camera {
     private val pitchMax = 89.0
-    private var pos: Vector3f = Vector3f()
+
+    var pos: Vector3f = Vector3f()
+    private set
+
     private var up = Vector3f(0f,1f,0f)
     private var front = Vector3f(0f,0f,1f)
     private var moveDelta = Vector3f()

@@ -21,6 +21,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
 
     override fun initialize(){
 
+
         val vertexShaderSource = File("main.vert").readText()
         val fragmentShaderSource = File("main.frag").readText()
         val lightShaderSource = File("light.frag").readText()
@@ -36,6 +37,8 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         program.setUniformMat4("projection",cam.projection)
         light.setUniformMat4("projection",cam.projection)
 
+        program.setMaterial(Material.getDefaultMaterial())
+
         val lightEntity = Entity(VertexArrayObject(Model.getCube().apply { objectColor = Vector3f(1f,0.5f,0.31f) },light))
         val floor = Entity(VertexArrayObject(Model.getPlane("GroundForest003_COL_VAR1_3K.jpg"),program))
         floor.rotate(90f,1f,0f,0f)
@@ -43,7 +46,10 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         floor.position(0f,-1f,0f)
 
         lightEntity.position(1.2f,1f,2f)
-        program.setUniform3f("lightPos",1.2f,1f,2f)
+        program.setUniform3f("light.position",1.2f,1f,2f)
+        program.setLight(Light.getDefaultLight())
+        program.setVec3("viewPos",cam.pos)
+
 
         lightEntity.scale(0.2f,0.2f,0.2f)
         entities.add(lightEntity)
@@ -52,6 +58,9 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
         entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
         entities.add(Entity(VertexArrayObject(Model.getCube("awesomeface2.png").apply {  },program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
 
 
 
