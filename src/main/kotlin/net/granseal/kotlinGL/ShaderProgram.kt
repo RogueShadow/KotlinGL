@@ -83,7 +83,7 @@ data class Light(val ambient: Vector3f,
                  val specular: Vector3f){
     companion object {
         fun getDefaultLight(): Light = Light(
-            Vector3f(.2f,.2f,.2f),
+            Vector3f(.1f,.1f,.1f),
             Vector3f(.5f,.5f,.5f),
             Vector3f(1f,1f,1f)
         )

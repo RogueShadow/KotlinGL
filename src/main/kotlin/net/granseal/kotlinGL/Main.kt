@@ -20,6 +20,9 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
     var cam = Camera()
     var camSpeed = 5f
 
+    lateinit private var lightEntity: Entity
+    lateinit var floor: Entity
+
     override fun initialize(){
 
 
@@ -40,11 +43,10 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
 
         program.setMaterial(Material.getDefaultMaterial())
 
-        val lightEntity = Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply { objectColor = Vector3f(1f,0.5f,0.31f) },light))
-        val floor = Entity(VertexArrayObject(Model.getPlane("GroundForest003_COL_VAR1_3K.jpg"),program))
-        floor.rotate(90f,1f,0f,0f)
-        floor.scale(40f,40f,40f)
-        floor.position(0f,-1f,0f)
+        lightEntity = Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply {  },light))
+        floor = Entity(VertexArrayObject(Model.loadObj("ground.obj").apply{ textureFile = "GroundForest003_COL_VAR1_3K.jpg"
+            objectColor = Vector3f(0.2f,0.7f,0f) },program) )
+        floor.position(0f,-5f,0f)
 
         lightEntity.position(1.2f,1f,2f)
         program.setUniform3f("light.position",1.2f,1f,2f)
@@ -52,14 +54,19 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         program.setVec3("viewPos",cam.pos)
 
 
-        lightEntity.scale(0.2f,0.2f,0.2f)
+        lightEntity.scale = 0.1f
         entities.add(lightEntity)
         entities.add(floor)
-        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "GroundForest003_COL_VAR1_3K.jpg"},program)))
-        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "container.jpg"},program)))
-        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
-        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
-        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+
+        entities.add(Entity(VertexArrayObject(Model.loadObj("dragon.obj").apply{textureFile = "container.jpg"
+            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(2f,0f,2f)
+                                                                                                        scale = 0.2f})
+        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "container.jpg"
+            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply {
+            position(-2f,0f,0f) })
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"
+            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(0f,0f,-2f) })
+
 
 
 
@@ -99,14 +106,18 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         setTitle("$TITLE ${getFPS()}")
 
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
-        //entities.forEach {it.rotate(100f*delta,0.5f,1f,0f)}
+        entities.forEach {
+            if (it != floor)it.rotate(150f*delta,0.0f,1f,0f)
+        }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
 
-        val radius = 10f
+        val radius = 5f
         //cam.pos.x = sin(getTimePassed()*0.5f).toFloat() * radius
         //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
-
+        lightEntity.position.x = sin(getTimePassed()*0.5f).toFloat() * radius
+        lightEntity.position.z = cos(getTimePassed()*0.5f).toFloat() * radius
+        program.setVec3("light.position",lightEntity.position)
 
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)){
             moveBoxes = true
@@ -125,6 +136,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
 
         cam.updateCamera(deltax,deltay,delta)
         //view = cam.lookAt(Vector3f(0f,0f,0f))
+        program.setVec3("viewPos",cam.pos)
         program.setUniformMat4("view",cam.view)
         light.setUniformMat4("view",cam.view)
 
