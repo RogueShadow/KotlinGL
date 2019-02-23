@@ -6,10 +6,19 @@ import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 
-fun main(){
+fun main() {
     Main(800, 600, "KotlinGL").run()
 }
-class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title) {
+
+class Main(width: Int, height: Int, title: String) : KotlinGL(width, height, title) {
+    override fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float) {
+        if (button == 0 && action == 0){
+            mouseGrabbed = !mouseGrabbed
+            println("Toggled")
+        }
+
+    }
+
     var entities: MutableList<Entity> = mutableListOf()
     var selected = 0
     var moveBoxes = false
@@ -20,10 +29,10 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
     var cam = Camera()
     var camSpeed = 5f
 
-    lateinit private var lightEntity: Entity
+    private lateinit var lightEntity: Entity
     lateinit var floor: Entity
 
-    override fun initialize(){
+    override fun initialize() {
 
 
         val vertexShaderSource = File("main.vert").readText()
@@ -33,13 +42,13 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         light = ShaderProgram(vertexShaderSource, lightShaderSource)
         program = ShaderProgram(vertexShaderSource, fragmentShaderSource)
 
-        light.setUniform3f("lightColor",1f,1f,1f)
-        program.setUniform3f("lightColor",1f,1f,1f)
+        light.setUniform3f("lightColor", 1f, 1f, 1f)
+        program.setUniform3f("lightColor", 1f, 1f, 1f)
 
-        cam.setPerspective(45f,width.toFloat()/height.toFloat(),0.1f,100f)
+        cam.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        program.setUniformMat4("projection",cam.projection)
-        light.setUniformMat4("projection",cam.projection)
+        program.setUniformMat4("projection", cam.projection)
+        light.setUniformMat4("projection", cam.projection)
 
         program.setMaterial(Material.getDefaultMaterial())
 
@@ -56,12 +65,12 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
                 }, program
             )
         )
-        floor.position(0f,-5f,0f)
+        floor.position(0f, -5f, 0f)
 
-        lightEntity.position(1.2f,1f,2f)
-        program.setUniform3f("light.position",1.2f,1f,2f)
+        lightEntity.position(1.2f, 1f, 2f)
+        program.setUniform3f("light.position", 1.2f, 1f, 2f)
         program.setLight(Light.getDefaultLight())
-        program.setVec3("viewPos",cam.pos)
+        program.setVec3("viewPos", cam.pos)
 
 
         lightEntity.scale = 0.1f
@@ -78,8 +87,10 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
                         objectColor = Vector3f(1f, 0.5f, 0.31f)
                     }, program
                 )
-            ).apply { position(2f,0f,2f)
-                                                                                                        scale = 0.2f})
+            ).apply {
+                position(2f, 0f, 2f)
+                scale = 0.2f
+            })
         entities.add(
             Entity(
                 VertexArrayObject(
@@ -91,7 +102,8 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
                     }, program
                 )
             ).apply {
-            position(-2f,0f,0f) })
+                position(-2f, 0f, 0f)
+            })
         entities.add(
             Entity(
                 VertexArrayObject(
@@ -102,8 +114,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
                         objectColor = Vector3f(1f, 0.5f, 0.31f)
                     }, program
                 )
-            ).apply { position(0f,0f,-2f) })
-
+            ).apply { position(0f, 0f, -2f) })
 
 
         //entities[0].rotate(90f,1f,0f,0f)
@@ -118,8 +129,8 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
     //key is case sensative, only normal typing keys, action 1 - pressed, 2 - held (repeats), 0 - released
     override fun keyEvent(key: String, action: Int) {
         if (action == 1) {
-            if (!moveBoxes)return
-            when (key){
+            if (!moveBoxes) return
+            when (key) {
                 "q" -> {
                     selected++
                     if (selected >= entities.size) selected = 0
@@ -129,21 +140,22 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
                     if (selected < 0) selected = entities.size - 1
                 }
 
-                "a" ->entities[selected].move(-1f,0f,0f)
-                "d" ->entities[selected].move(1f,0f,0f)
-                "w" ->entities[selected].move(0f,1f,0f)
-                "s" ->entities[selected].move(0f,-1f,0f)
-                "z" ->entities[selected].move(0f,0f,1f)
-                "c" ->entities[selected].move(0f,0f,-1f)
+                "a" -> entities[selected].move(-1f, 0f, 0f)
+                "d" -> entities[selected].move(1f, 0f, 0f)
+                "w" -> entities[selected].move(0f, 1f, 0f)
+                "s" -> entities[selected].move(0f, -1f, 0f)
+                "z" -> entities[selected].move(0f, 0f, 1f)
+                "c" -> entities[selected].move(0f, 0f, -1f)
             }
         }
     }
+
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$TITLE ${getFPS()}")
 
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         entities.forEach {
-            if (it != floor)it.rotate(150f*delta,0.0f,1f,0f)
+            if (it != floor) it.rotate(150f * delta, 0.0f, 1f, 0f)
         }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
@@ -151,13 +163,13 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         val radius = 5f
         //cam.pos.x = sin(getTimePassed()*0.5f).toFloat() * radius
         //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
-        lightEntity.position.x = sin(getTimePassed()*0.5f).toFloat() * radius
-        lightEntity.position.z = cos(getTimePassed()*0.5f).toFloat() * radius
-        program.setVec3("light.position",lightEntity.position)
+        lightEntity.position.x = sin(getTimePassed() * 0.5f).toFloat() * radius
+        lightEntity.position.z = cos(getTimePassed() * 0.5f).toFloat() * radius
+        program.setVec3("light.position", lightEntity.position)
 
-        if (keyPressed(GLFW_KEY_LEFT_SHIFT)){
+        if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
             moveBoxes = true
-        }else {
+        } else {
             moveBoxes = false
 
             if (keyPressed(GLFW_KEY_W)) cam.forward(camSpeed * delta)
@@ -170,19 +182,20 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         }
 
 
-        cam.updateCamera(deltax,deltay,delta)
+        cam.updateCamera(deltax, deltay, delta)
         //view = cam.lookAt(Vector3f(0f,0f,0f))
-        program.setVec3("viewPos",cam.pos)
-        program.setUniformMat4("view",cam.view)
-        light.setUniformMat4("view",cam.view)
+        program.setVec3("viewPos", cam.pos)
+        program.setUniformMat4("view", cam.view)
+        light.setUniformMat4("view", cam.view)
 
     }
+
     override fun draw() {
-        entities.withIndex().forEach{
-            if (it.index == selected){
-                it.value.vao.shader.setUniform3f("tint",0f,0.5f,1f)
-            }else{
-                it.value.vao.shader.setUniform3f("tint",0f,0f,0f)
+        entities.withIndex().forEach {
+            if (it.index == selected) {
+                it.value.vao.shader.setUniform3f("tint", 0f, 0.5f, 1f)
+            } else {
+                it.value.vao.shader.setUniform3f("tint", 0f, 0f, 0f)
             }
             it.value.draw()
         }
