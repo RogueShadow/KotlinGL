@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 /*
  * The MIT License (MIT)
@@ -28,40 +28,32 @@ package net.granseal.kotlinGL
 import java.nio.FloatBuffer
 
 /**
- * This class represents a (x,y,z,w)-Vector. GLSL equivalent to vec4.
+ * This class represents a (x,y)-Vector. GLSL equivalent to vec2.
  *
  * @author Heiko Brumme
  */
-class Vector4f {
+class Vector2f {
 
     var x: Float = 0.toFloat()
     var y: Float = 0.toFloat()
-    var z: Float = 0.toFloat()
-    var w: Float = 0.toFloat()
 
     /**
-     * Creates a default 4-tuple vector with all values set to 0.
+     * Creates a default 2-tuple vector with all values set to 0.
      */
     constructor() {
         this.x = 0f
         this.y = 0f
-        this.z = 0f
-        this.w = 0f
     }
 
     /**
-     * Creates a 4-tuple vector with specified values.
+     * Creates a 2-tuple vector with specified values.
      *
      * @param x x value
      * @param y y value
-     * @param z z value
-     * @param w w value
      */
-    constructor(x: Float, y: Float, z: Float, w: Float) {
+    constructor(x: Float, y: Float) {
         this.x = x
         this.y = y
-        this.z = z
-        this.w = w
     }
 
     /**
@@ -70,7 +62,7 @@ class Vector4f {
      * @return Squared length of this vector
      */
     fun lengthSquared(): Float {
-        return x * x + y * y + z * z + w * w
+        return x * x + y * y
     }
 
     /**
@@ -87,7 +79,7 @@ class Vector4f {
      *
      * @return Normalized vector
      */
-    fun normalize(): Vector4f {
+    fun normalize(): Vector2f {
         val length = length()
         return this / length
     }
@@ -99,12 +91,10 @@ class Vector4f {
      *
      * @return Sum of this + other
      */
-    operator fun plus(other: Vector4f): Vector4f {
+    operator fun plus(other: Vector2f): Vector2f {
         val x = this.x + other.x
         val y = this.y + other.y
-        val z = this.z + other.z
-        val w = this.w + other.w
-        return Vector4f(x, y, z, w)
+        return Vector2f(x, y)
     }
 
     /**
@@ -112,7 +102,7 @@ class Vector4f {
      *
      * @return Negated vector
      */
-    fun negate(): Vector4f {
+    fun negate(): Vector2f {
         return scale(-1f)
     }
 
@@ -123,7 +113,7 @@ class Vector4f {
      *
      * @return Difference of this - other
      */
-    operator fun minus(other: Vector4f): Vector4f {
+    operator fun minus(other: Vector2f): Vector2f {
         return this + other.negate()
     }
 
@@ -134,12 +124,10 @@ class Vector4f {
      *
      * @return Scalar product of this * scalar
      */
-    fun scale(scalar: Float): Vector4f {
+    infix fun scale(scalar: Float): Vector2f {
         val x = this.x * scalar
         val y = this.y * scalar
-        val z = this.z * scalar
-        val w = this.w * scalar
-        return Vector4f(x, y, z, w)
+        return Vector2f(x, y)
     }
 
     /**
@@ -149,7 +137,7 @@ class Vector4f {
      *
      * @return Scalar quotient of this / scalar
      */
-    operator fun div(scalar: Float): Vector4f {
+    operator fun div(scalar: Float): Vector2f {
         return scale(1f / scalar)
     }
 
@@ -160,8 +148,8 @@ class Vector4f {
      *
      * @return Dot product of this * other
      */
-    operator fun times(other: Vector4f): Float {
-        return this.x * other.x + this.y * other.y + this.z * other.z + this.w * other.w
+    infix fun dot(other: Vector2f): Float {
+        return this.x * other.x + this.y * other.y
     }
 
     /**
@@ -173,8 +161,8 @@ class Vector4f {
      *
      * @return Linear interpolated vector
      */
-    fun lerp(other: Vector4f, alpha: Float): Vector4f {
-        return this.scale(1f - alpha) + (other.scale(alpha))
+    fun lerp(other: Vector2f, alpha: Float): Vector2f {
+        return this.scale(1f - alpha) + other.scale(alpha)
     }
 
     /**
@@ -183,12 +171,8 @@ class Vector4f {
      * @param buffer The buffer to store the vector data
      */
     fun toBuffer(buffer: FloatBuffer) {
-        buffer.put(x).put(y).put(z).put(w)
+        buffer.put(x).put(y)
         buffer.flip()
-    }
-
-    override fun toString():String {
-        return "Vector4f($x,$y,$z,$w)"
     }
 
 }

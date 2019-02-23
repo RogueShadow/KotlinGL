@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import java.io.File
 
@@ -7,7 +7,7 @@ data class Model(
     var textureCoords: FloatArray? = null,
     var indices: IntArray = intArrayOf(),
     var normals: FloatArray? = null,
-    var objectColor: Vector3f = Vector3f(1f,1f,1f),
+    var objectColor: Vector3f = Vector3f(1f, 1f, 1f),
     var textureFile: String = ""
 ) {
 
@@ -60,13 +60,21 @@ data class Model(
                 obj.forEach {
                     val line = it.split(" ")
                     if (line[0] == "v"){
-                        vertRef += Vector3f(line[1].toFloat(),line[2].toFloat(),line[3].toFloat())
+                        vertRef += Vector3f(
+                            line[1].toFloat(),
+                            line[2].toFloat(),
+                            line[3].toFloat()
+                        )
                     }
                     if (line[0] == "vt"){
-                        texRef += Vector2f(line[1].toFloat(),line[2].toFloat())
+                        texRef += Vector2f(line[1].toFloat(), line[2].toFloat())
                     }
                     if (line[0] == "vn"){
-                        normalRef += Vector3f(line[1].toFloat(),line[2].toFloat(),line[3].toFloat())
+                        normalRef += Vector3f(
+                            line[1].toFloat(),
+                            line[2].toFloat(),
+                            line[3].toFloat()
+                        )
                     }
                     if (line[0] == "f"){
                         val f1 = line[1].split("/")

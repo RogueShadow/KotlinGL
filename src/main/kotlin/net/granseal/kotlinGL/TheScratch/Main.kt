@@ -1,13 +1,13 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.TheScratch
 
+import net.granseal.kotlinGL.engine.*
 import org.lwjgl.glfw.GLFW.*
 import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.random.Random
 
 fun main(){
-    Main(800,600,"KotlinGL").run()
+    Main(800, 600, "KotlinGL").run()
 }
 class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title) {
     var entities: MutableList<Entity> = mutableListOf()
@@ -30,8 +30,8 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         val fragmentShaderSource = File("main.frag").readText()
         val lightShaderSource = File("light.frag").readText()
 
-        light = ShaderProgram(vertexShaderSource,lightShaderSource)
-        program = ShaderProgram(vertexShaderSource,fragmentShaderSource)
+        light = ShaderProgram(vertexShaderSource, lightShaderSource)
+        program = ShaderProgram(vertexShaderSource, fragmentShaderSource)
 
         light.setUniform3f("lightColor",1f,1f,1f)
         program.setUniform3f("lightColor",1f,1f,1f)
@@ -43,9 +43,19 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
 
         program.setMaterial(Material.getDefaultMaterial())
 
-        lightEntity = Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply {  },light))
-        floor = Entity(VertexArrayObject(Model.loadObj("ground.obj").apply{ textureFile = "GroundForest003_COL_VAR1_3K.jpg"
-            objectColor = Vector3f(0.2f,0.7f,0f) },program) )
+        lightEntity = Entity(
+            VertexArrayObject(
+                Model.loadObj("flatcube.obj").apply { }, light
+            )
+        )
+        floor = Entity(
+            VertexArrayObject(
+                Model.loadObj("ground.obj").apply {
+                    textureFile = "GroundForest003_COL_VAR1_3K.jpg"
+                    objectColor = Vector3f(0.2f, 0.7f, 0f)
+                }, program
+            )
+        )
         floor.position(0f,-5f,0f)
 
         lightEntity.position(1.2f,1f,2f)
@@ -58,14 +68,41 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         entities.add(lightEntity)
         entities.add(floor)
 
-        entities.add(Entity(VertexArrayObject(Model.loadObj("dragon.obj").apply{textureFile = "container.jpg"
-            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(2f,0f,2f)
+        entities.add(
+            Entity(
+                VertexArrayObject(
+                    Model.loadObj(
+                        "dragon.obj"
+                    ).apply {
+                        textureFile = "container.jpg"
+                        objectColor = Vector3f(1f, 0.5f, 0.31f)
+                    }, program
+                )
+            ).apply { position(2f,0f,2f)
                                                                                                         scale = 0.2f})
-        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "awesomeface2.png"
-            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply {
+        entities.add(
+            Entity(
+                VertexArrayObject(
+                    Model.loadObj(
+                        "flatcube.obj"
+                    ).apply {
+                        textureFile = "awesomeface2.png"
+                        objectColor = Vector3f(1f, 0.5f, 0.31f)
+                    }, program
+                )
+            ).apply {
             position(-2f,0f,0f) })
-        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"
-            objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(0f,0f,-2f) })
+        entities.add(
+            Entity(
+                VertexArrayObject(
+                    Model.loadObj(
+                        "cube.obj"
+                    ).apply {
+                        textureFile = "container.jpg"
+                        objectColor = Vector3f(1f, 0.5f, 0.31f)
+                    }, program
+                )
+            ).apply { position(0f,0f,-2f) })
 
 
 

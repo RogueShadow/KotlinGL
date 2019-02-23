@@ -1,7 +1,6 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33.*
 
 class VertexArrayObject(val model: Model, val shader: ShaderProgram) {

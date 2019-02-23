@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import org.lwjgl.opengl.GL33
 

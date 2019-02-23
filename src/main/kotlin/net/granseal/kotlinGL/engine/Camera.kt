@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -9,8 +9,8 @@ class Camera {
     var pos: Vector3f = Vector3f()
     private set
 
-    private var up = Vector3f(0f,1f,0f)
-    private var front = Vector3f(0f,0f,1f)
+    private var up = Vector3f(0f, 1f, 0f)
+    private var front = Vector3f(0f, 0f, 1f)
     private var moveDelta = Vector3f()
     var sensativity = 40f
     var cameraSpeed = 6f
@@ -20,7 +20,7 @@ class Camera {
     var projection = Matrix4f()
 
     fun setPerspective(fov: Float, aspect: Float, near: Float, far: Float){
-        projection = Matrix4f.perspective(fov,aspect,near,far)
+        projection = Matrix4f.perspective(fov, aspect, near, far)
     }
 
     fun move(deltaX: Float, deltaY: Float, deltaZ: Float){
@@ -29,7 +29,7 @@ class Camera {
         pos.z += deltaZ
     }
     fun position(x: Float, y: Float, z: Float){
-        pos = Vector3f(x,y,z)
+        pos = Vector3f(x, y, z)
     }
     fun updateCamera(deltaX: Float, deltaY: Float, delta: Float){
         yaw -= deltaX*delta*sensativity
@@ -63,11 +63,12 @@ class Camera {
         val r = (up cross d ).normalize()
         val u = d cross r
         val viewMatrix = Matrix4f(
-            Vector4f(r.x,r.y,r.z,0f),
-            Vector4f(u.x,u.y,u.z,0f),
-            Vector4f(d.x,d.y,d.z,0f),
-            Vector4f(0f,0f,0f,1f)).transpose()
-        val posMat = Matrix4f.translate(-pos.x,-pos.y,-pos.z)
+            Vector4f(r.x, r.y, r.z, 0f),
+            Vector4f(u.x, u.y, u.z, 0f),
+            Vector4f(d.x, d.y, d.z, 0f),
+            Vector4f(0f, 0f, 0f, 1f)
+        ).transpose()
+        val posMat = Matrix4f.translate(-pos.x, -pos.y, -pos.z)
         front = d.negate()
         view = viewMatrix * posMat
     }

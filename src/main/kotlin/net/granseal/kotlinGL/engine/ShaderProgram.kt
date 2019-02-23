@@ -1,8 +1,7 @@
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33.*
-import java.nio.FloatBuffer
 
 class ShaderProgram(vert: String, frag: String){
     private val id = glCreateProgram()
@@ -21,7 +20,7 @@ class ShaderProgram(vert: String, frag: String){
             glDeleteShader(fid)
         }
     }
-    fun use():ShaderProgram {
+    fun use(): ShaderProgram {
         glUseProgram(id)
         return this
     }
@@ -71,7 +70,7 @@ data class Material(val diffuse: Int,
         fun getDefaultMaterial(): Material {
             return Material(
                 0,
-                Vector3f(.5f,.5f,.5f),
+                Vector3f(.5f, .5f, .5f),
                 32f
             )
         }
@@ -80,12 +79,13 @@ data class Material(val diffuse: Int,
 
 data class Light(val ambient: Vector3f,
                  val diffuse: Vector3f,
-                 val specular: Vector3f){
+                 val specular: Vector3f
+){
     companion object {
         fun getDefaultLight(): Light = Light(
-            Vector3f(.1f,.1f,.1f),
-            Vector3f(.5f,.5f,.5f),
-            Vector3f(1f,1f,1f)
+            Vector3f(.1f, .1f, .1f),
+            Vector3f(.5f, .5f, .5f),
+            Vector3f(1f, 1f, 1f)
         )
     }
 }

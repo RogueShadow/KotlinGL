@@ -2,7 +2,7 @@
  * Copyright LWJGL. All rights reserved.
  * License terms: https://www.lwjgl.org/license
  */
-package net.granseal.kotlinGL
+package net.granseal.kotlinGL.engine
 
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.*
