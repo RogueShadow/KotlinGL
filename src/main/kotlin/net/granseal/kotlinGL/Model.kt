@@ -21,12 +21,15 @@ data class Model(
         val result = mutableListOf<Float>()
         for (i in 0 until verticies.size step 3){
             result += verticies.slice(i..i+2)
+
             if (normals != null){
                 result += normals!!.slice(norI..norI+2)
+
                 norI += 3
             }
             if (textureCoords != null){
                 result += textureCoords!!.slice(texI..texI+1)
+
                 texI += 2
             }
         }
@@ -47,58 +50,81 @@ data class Model(
 
             fun loadObj(file: String): Model {
                 val obj = File(file).readLines()
-                val verts = mutableListOf<Float>()
-                val tex = mutableListOf<Float>()
-                val normals = mutableListOf<Float>()
-                val indicies = mutableListOf<Int>()
+                val vertRef = mutableListOf<Vector3f>()
+                val texRef = mutableListOf<Vector2f>()
+                val normalRef = mutableListOf<Vector3f>()
+                val iRef = mutableListOf<Int>()
+                val vertActual = mutableListOf<Float>()
                 val texActual = mutableListOf<Float>()
                 val norActual = mutableListOf<Float>()
                 obj.forEach {
                     val line = it.split(" ")
                     if (line[0] == "v"){
-                        verts += line[1].toFloat()
-                        verts += line[2].toFloat()
-                        verts += line[3].toFloat()
+                        vertRef += Vector3f(line[1].toFloat(),line[2].toFloat(),line[3].toFloat())
                     }
                     if (line[0] == "vt"){
-                        tex += line[1].toFloat()
-                        tex += line[2].toFloat()
+                        texRef += Vector2f(line[1].toFloat(),line[2].toFloat())
                     }
                     if (line[0] == "vn"){
-                        normals += line[1].toFloat()
-                        normals += line[2].toFloat()
-                        normals += line[3].toFloat()
+                        normalRef += Vector3f(line[1].toFloat(),line[2].toFloat(),line[3].toFloat())
                     }
                     if (line[0] == "f"){
-                        var f = line[1].split("/")
-                        indicies += f[0].toInt()
-                        if (f.size > 1){
-                            texActual += tex[f[1].toInt()]
+                        val f1 = line[1].split("/")
+                        val f2 = line[2].split("/")
+                        val f3 = line[3].split("/")
+                        iRef += f1[0].toInt()
+                        vertActual += vertRef[f1[0].toInt()-1].x
+                        vertActual += vertRef[f1[0].toInt()-1].y
+                        vertActual += vertRef[f1[0].toInt()-1].z
+                        if (f1.size > 1){
+                            texActual += texRef[f1[1].toInt()-1].x
+                            texActual += texRef[f1[1].toInt()-1].y
                         }
-                        if (f.size > 2){
-                            norActual += normals[f[2].toInt()]
+                        if (f1.size > 2){
+                            norActual += normalRef[f1[2].toInt()-1].x
+                            norActual += normalRef[f1[2].toInt()-1].y
+                            norActual += normalRef[f1[2].toInt()-1].z
                         }
-                        f = line[2].split("/")
-                        indicies += f[0].toInt()
-                        if (f.size > 1){
-                            texActual += tex[f[1].toInt()]
+
+                        iRef += f2[0].toInt()
+                        vertActual += vertRef[f2[0].toInt()-1].x
+                        vertActual += vertRef[f2[0].toInt()-1].y
+                        vertActual += vertRef[f2[0].toInt()-1].z
+                        if (f2.size > 1){
+                            texActual += texRef[f2[1].toInt()-1].x
+                            texActual += texRef[f2[1].toInt()-1].y
                         }
-                        if (f.size > 2){
-                            norActual += normals[f[2].toInt()]
+                        if (f2.size > 2){
+                            norActual += normalRef[f2[2].toInt()-1].x
+                            norActual += normalRef[f2[2].toInt()-1].y
+                            norActual += normalRef[f2[2].toInt()-1].z
                         }
-                        f = line[3].split("/")
-                        indicies += (f[0].toInt()-1)
-                        if (f.size > 1){
-                            texActual += tex[f[1].toInt()-1]
+
+                        iRef += f3[0].toInt()
+                        vertActual += vertRef[f3[0].toInt()-1].x
+                        vertActual += vertRef[f3[0].toInt()-1].y
+                        vertActual += vertRef[f3[0].toInt()-1].z
+                        if (f3.size > 1){
+                            texActual += texRef[f3[1].toInt()-1].x
+                            texActual += texRef[f3[1].toInt()-1].y
                         }
-                        if (f.size > 2){
-                            norActual += normals[f[2].toInt()-1]
+                        if (f3.size > 2){
+                            norActual += normalRef[f3[2].toInt()-1].x
+                            norActual += normalRef[f3[2].toInt()-1].y
+                            norActual += normalRef[f3[2].toInt()-1].z
                         }
                     }
 
                 }
-
-                return Model(verts.toFloatArray(),texActual.toFloatArray(),indicies.toIntArray(),norActual.toFloatArray())
+                println("Loaded Model: $file")
+                println("Verticies loaded: ${vertActual.size/3}")
+                println("Normals loaded: ${norActual.size/3}")
+                println("Texture Coords Loaded: ${texActual.size/2}")
+                return Model().apply {
+                    verticies = vertActual.toFloatArray()
+                    textureCoords = texActual.toFloatArray()
+                    normals = norActual.toFloatArray()
+                }
             }
 
 

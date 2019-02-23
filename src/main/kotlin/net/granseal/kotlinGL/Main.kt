@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFW.*
 import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
 fun main(){
     Main(800,600,"KotlinGL").run()
@@ -54,18 +55,21 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         lightEntity.scale(0.2f,0.2f,0.2f)
         entities.add(lightEntity)
         entities.add(floor)
-        entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply { },program)))
         entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube("GroundForest003_COL_VAR1_3K.jpg").apply {  },program)))
-        entities.add(Entity(VertexArrayObject(Model.getCube("awesomeface2.png").apply {  },program)))
         entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
+        entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
         entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
         entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"},program)))
 
 
 
         //entities[0].rotate(90f,1f,0f,0f)
-        //entities[0].scale(20f,1f,20f)
+
 
         cam.yaw = 2.0
 
@@ -99,6 +103,7 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$TITLE ${getFPS()}")
 
+        //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         //entities.forEach {it.rotate(100f*delta,0.5f,1f,0f)}
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
