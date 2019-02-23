@@ -61,12 +61,11 @@ class Main(width: Int, height: Int, title: String): KotlinGL(width,height,title)
         entities.add(Entity(VertexArrayObject(Model.loadObj("dragon.obj").apply{textureFile = "container.jpg"
             objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(2f,0f,2f)
                                                                                                         scale = 0.2f})
-        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "container.jpg"
+        entities.add(Entity(VertexArrayObject(Model.loadObj("flatcube.obj").apply{textureFile = "awesomeface2.png"
             objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply {
             position(-2f,0f,0f) })
         entities.add(Entity(VertexArrayObject(Model.loadObj("cube.obj").apply{textureFile = "container.jpg"
             objectColor = Vector3f(1f,0.5f,0.31f)},program)).apply { position(0f,0f,-2f) })
-
 
 
 
