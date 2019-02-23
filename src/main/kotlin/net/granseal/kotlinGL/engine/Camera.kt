@@ -1,5 +1,8 @@
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.math.Matrix4f
+import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.math.Vector4f
 import kotlin.math.cos
 import kotlin.math.sin
 

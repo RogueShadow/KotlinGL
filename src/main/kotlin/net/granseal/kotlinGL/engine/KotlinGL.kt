@@ -10,10 +10,18 @@ import org.lwjgl.system.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.opengl.GL33.*
-import kotlin.properties.Delegates
-import kotlin.random.Random
+import org.lwjgl.glfw.GLFW.GLFW_REFRESH_RATE
+import org.lwjgl.glfw.GLFW.glfwWindowHint
+import org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS
+import org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS
+import org.lwjgl.glfw.GLFW.GLFW_RED_BITS
 
-abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
+
+
+abstract class KotlinGL(var width: Int = 800,
+                        var height: Int = 600,
+                        var windowTitle: String = "KotlinGL",
+                        var fullScreen: Boolean = false) {
 
     private var debugProc: Callback? = null
 
@@ -25,20 +33,19 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
     private var lastx = 0f
     private var lasty = 0f
 
-
     var mouseGrabbed = true
         set(value){
             glfwSetInputMode(window, GLFW_CURSOR,if (value) GLFW_CURSOR_DISABLED else GLFW_CURSOR_NORMAL)
             field = value
         }
 
-
     private val timer = Timer()
-    private var rand = Random(System.nanoTime())
 
     fun run() {
         try {
-            initGL()
+            window = createWindow(width,height,windowTitle,fullScreen)
+            initCallbacks()
+            initializeEngine()
             loop()
             glfwDestroyWindow(window)
             if (debugProc != null)
@@ -48,8 +55,7 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
         }
     }
 
-
-    private fun initGL() {
+    private fun createWindow(width: Int, height: Int,title: String,fullScreen: Boolean): Long {
         //Get our window from GLFW
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
 
@@ -64,13 +70,29 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) // use the core profile
 
-        window = glfwCreateWindow(width, height, TITLE, NULL, NULL)
+        window = if (fullScreen){
+            val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+
+            if (mode == null)throw Exception("Couldn't retrieve video mode of primary monitor")
+
+            glfwWindowHint(GLFW_RED_BITS, mode.redBits())
+            glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits())
+            glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits())
+            glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate())
+            glfwCreateWindow(mode.width(),mode.height(),windowTitle, glfwGetPrimaryMonitor(),NULL)
+        }else{
+            glfwCreateWindow(width, height, title,NULL, NULL)
+        }
+
         if (window == NULL)
             throw RuntimeException("Failed to create the GLFW window")
 
         glfwMakeContextCurrent(window)
         glfwShowWindow(window)
+        return window
+    }
 
+    private fun initCallbacks(){
         //Create all the callbacks.
         glfwSetKeyCallback(window,object: GLFWKeyCallback() {
             override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int){
@@ -125,9 +147,12 @@ abstract class KotlinGL(var width: Int, var height: Int, var TITLE:  String) {
         })
         glfwSetJoystickCallback(object: GLFWJoystickCallback(){
             override fun invoke(jid: Int, event: Int) {
-                println("JoystickEvent jid($jid) event($event)")
+
             }
         })
+    }
+
+    private fun initializeEngine() {
 
         //Center the window on the screen
         val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())

@@ -1,5 +1,7 @@
-package net.granseal.kotlinGL.engine
+package net.granseal.kotlinGL.engine.shaders
 
+import net.granseal.kotlinGL.engine.math.Matrix4f
+import net.granseal.kotlinGL.engine.math.Vector3f
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33.*
 
@@ -14,7 +16,7 @@ class ShaderProgram(vert: String, frag: String){
         val success = glGetProgrami(id, GL_LINK_STATUS)
         if (success != 1){
             println(glGetProgramInfoLog(id))
-            throw Exception("Shader failed to complile")
+            throw IllegalStateException("Shader failed to complile")
         }else{
             glDeleteShader(vid)
             glDeleteShader(fid)
@@ -87,5 +89,23 @@ data class Light(val ambient: Vector3f,
             Vector3f(.5f, .5f, .5f),
             Vector3f(1f, 1f, 1f)
         )
+    }
+}
+class FragmentShader(source: String){
+    val id = glCreateShader(GL_FRAGMENT_SHADER)
+    init {
+        glShaderSource(id, source)
+        glCompileShader(id)
+        val success = glGetShaderi(id, GL_COMPILE_STATUS)
+        if (success != 1) println(glGetShaderInfoLog(id))
+    }
+}
+class VertexShader(source: String){
+    val id = glCreateShader(GL_VERTEX_SHADER)
+    init {
+        glShaderSource(id, source)
+        glCompileShader(id)
+        val success = glGetShaderi(id, GL_COMPILE_STATUS)
+        if (success != 1) println(glGetShaderInfoLog(id))
     }
 }

@@ -1,5 +1,8 @@
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.math.Matrix4f
+import net.granseal.kotlinGL.engine.math.Vector3f
+
 class Entity(val vao: VertexArrayObject){
     var position = Vector3f()
     var scale = 1f

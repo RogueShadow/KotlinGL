@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL.engine
+package net.granseal.kotlinGL.engine.math
 
 /*
  * The MIT License (MIT)

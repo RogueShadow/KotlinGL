@@ -1,22 +1,24 @@
-package net.granseal.kotlinGL.TheScratch
+package net.granseal.kotlinGL.theScratch
 
 import net.granseal.kotlinGL.engine.*
+import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.shaders.Light
+import net.granseal.kotlinGL.engine.shaders.Material
+import net.granseal.kotlinGL.engine.shaders.ShaderProgram
 import org.lwjgl.glfw.GLFW.*
 import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
-    Main(800, 600, "KotlinGL").run()
+    Main(1920, 1080, "KotlinGL", true).run()
 }
 
-class Main(width: Int, height: Int, title: String) : KotlinGL(width, height, title) {
+class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
     override fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float) {
         if (button == 0 && action == 0){
             mouseGrabbed = !mouseGrabbed
-            println("Toggled")
         }
-
     }
 
     var entities: MutableList<Entity> = mutableListOf()
@@ -151,7 +153,7 @@ class Main(width: Int, height: Int, title: String) : KotlinGL(width, height, tit
     }
 
     override fun update(delta: Float, deltax: Float, deltay: Float) {
-        setTitle("$TITLE ${getFPS()}")
+        setTitle("$windowTitle ${getFPS()}")
 
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         entities.forEach {

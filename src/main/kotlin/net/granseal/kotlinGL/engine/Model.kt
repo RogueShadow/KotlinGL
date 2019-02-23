@@ -1,5 +1,7 @@
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.math.Vector2f
+import net.granseal.kotlinGL.engine.math.Vector3f
 import java.io.File
 
 data class Model(
@@ -7,7 +9,11 @@ data class Model(
     var textureCoords: FloatArray? = null,
     var indices: IntArray = intArrayOf(),
     var normals: FloatArray? = null,
-    var objectColor: Vector3f = Vector3f(1f, 1f, 1f),
+    var objectColor: Vector3f = Vector3f(
+        1f,
+        1f,
+        1f
+    ),
     var textureFile: String = ""
 ) {
 

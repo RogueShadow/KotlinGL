@@ -1,4 +1,4 @@
-package net.granseal.kotlinGL.engine
+package net.granseal.kotlinGL.engine.math
 
 /*
  * The MIT License (MIT)
@@ -81,7 +81,7 @@ class Vector2f {
      */
     fun normalize(): Vector2f {
         val length = length()
-        return this / length
+        return if (length > 0)this / length else this
     }
 
     /**

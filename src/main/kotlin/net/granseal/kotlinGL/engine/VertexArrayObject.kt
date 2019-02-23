@@ -1,5 +1,6 @@
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.shaders.ShaderProgram
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33.*
 
