@@ -46,7 +46,7 @@ class VertexArrayObject(val model: Model, val shader: ShaderProgram) {
         if (indexed){
             glDrawElements(GL_TRIANGLES, model.indices.size, GL_UNSIGNED_INT, 0)
         }else{
-            glDrawArrays(GL11.GL_TRIANGLES, 0, 36)
+            glDrawArrays(GL11.GL_TRIANGLES, 0, model.verticies.size/3)
         }
     }
 }
