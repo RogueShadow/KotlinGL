@@ -1,19 +1,24 @@
 package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.shaders.ShaderProgram
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33.*
 
 class VertexArrayObject(val model: Model, val shader: ShaderProgram) {
     private val id = glGenVertexArrays()
+    private var vbo: Int
+    private var ebo: Int? = null
     private var texID: Int? = null
     private var indexed: Boolean = false
 
     init {
-        bind()
-        val vbo = VertexBufferObject(model.getCombinedFloatArray())
+        glBindVertexArray(id)
+        vbo = glGenBuffers()
+        glBindBuffer(GL_ARRAY_BUFFER,vbo)
+        glBufferData(GL_ARRAY_BUFFER,model.getCombinedFloatArray(), GL_STATIC_DRAW)
         if (model.indices.isNotEmpty()) {
-            val ebo = ElementBufferObject(model.indices)
+            ebo = glGenBuffers()
+            if (ebo != null)glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo!!)else throw Exception("Didn't generate EBO buffer")
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indices, GL_STATIC_DRAW)
             indexed = true
         }
 
@@ -33,20 +38,15 @@ class VertexArrayObject(val model: Model, val shader: ShaderProgram) {
         }
     }
 
-    fun bind(): VertexArrayObject {
-        glBindVertexArray(id)
-        return this
-    }
-
     fun draw() {
-        bind()
-        if (texID != null) glBindTexture(GL11.GL_TEXTURE_2D,texID!!)
+        glBindVertexArray(id)
+        if (texID != null) glBindTexture(GL_TEXTURE_2D,texID!!)
         shader.use()
         shader.setUniform3f("objectColor",model.objectColor.x,model.objectColor.y,model.objectColor.z)
         if (indexed){
             glDrawElements(GL_TRIANGLES, model.indices.size, GL_UNSIGNED_INT, 0)
         }else{
-            glDrawArrays(GL11.GL_TRIANGLES, 0, model.verticies.size/3)
+            glDrawArrays(GL_TRIANGLES, 0, model.verticies.size/3)
         }
     }
 }
