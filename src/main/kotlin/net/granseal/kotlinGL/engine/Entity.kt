@@ -2,12 +2,13 @@ package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.shaders.Material
 
-class Entity(val vao: VertexArrayObject){
+open class Entity(var mesh: BaseMesh? = null, var material: Material? = null){
     var position = Vector3f()
     var scale = 1f
 
-    fun modelMatrix(): Matrix4f {
+    fun entityMatrix(): Matrix4f {
         return Matrix4f.translate(
             position.x,
             position.y,
@@ -35,7 +36,8 @@ class Entity(val vao: VertexArrayObject){
     }
 
     fun draw(){
-        vao.shader.setUniformMat4("transform",modelMatrix())
-        vao.draw()
+        material?.getShader()?.setUniformMat4("transform",entityMatrix())
+        material?.use()
+        mesh?.draw()
     }
 }

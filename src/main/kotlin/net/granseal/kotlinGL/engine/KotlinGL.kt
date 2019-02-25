@@ -4,6 +4,7 @@
  */
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.*
 import org.lwjgl.system.*
@@ -51,6 +52,8 @@ abstract class KotlinGL(var width: Int = 800,
             if (debugProc != null)
                 debugProc!!.free()
         } finally {
+            VAOManager.cleanUp()
+            ShaderManager.cleanUp()
             glfwTerminate()
         }
     }
@@ -71,9 +74,7 @@ abstract class KotlinGL(var width: Int = 800,
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) // use the core profile
 
         window = if (fullScreen){
-            val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
-
-            if (mode == null)throw Exception("Couldn't retrieve video mode of primary monitor")
+            val mode = glfwGetVideoMode(glfwGetPrimaryMonitor()) ?: throw Exception("Couldn't retrieve video mode of primary monitor")
 
             glfwWindowHint(GLFW_RED_BITS, mode.redBits())
             glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits())
@@ -175,8 +176,8 @@ abstract class KotlinGL(var width: Int = 800,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.init()
         initialize()
-        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
-        glClearColor(0f,0f,0f,1f)
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+        //glClearColor(0f,0f,0f,1f)
 
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()

@@ -1,17 +1,18 @@
 package net.granseal.kotlinGL.theScratch
 
-import net.granseal.kotlinGL.engine.*
+import net.granseal.kotlinGL.engine.Camera
+import net.granseal.kotlinGL.engine.Entity
+import net.granseal.kotlinGL.engine.KotlinGL
+import net.granseal.kotlinGL.engine.MeshManager
 import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.engine.shaders.Light
-import net.granseal.kotlinGL.engine.shaders.Material
-import net.granseal.kotlinGL.engine.shaders.ShaderProgram
+import net.granseal.kotlinGL.engine.shaders.DefaultMaterial
+import net.granseal.kotlinGL.engine.shaders.LightMaterial
 import org.lwjgl.glfw.GLFW.*
-import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
-    Main(1920, 1080, "KotlinGL", true).run()
+    Main(1600, 900, "KotlinGL", false).run()
 }
 
 class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
@@ -25,8 +26,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var selected = 0
     var moveBoxes = false
 
-    lateinit var program: ShaderProgram
-    lateinit var light: ShaderProgram
+    lateinit var defShader: DefaultMaterial
+    lateinit var lightShader: LightMaterial
 
     var cam = Camera()
     var camSpeed = 5f
@@ -35,92 +36,33 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     lateinit var floor: Entity
 
     override fun initialize() {
-
-
-        val vertexShaderSource = File("main.vert").readText()
-        val fragmentShaderSource = File("main.frag").readText()
-        val lightShaderSource = File("light.frag").readText()
-
-        light = ShaderProgram(vertexShaderSource, lightShaderSource)
-        program = ShaderProgram(vertexShaderSource, fragmentShaderSource)
-
-        light.setUniform3f("lightColor", 1f, 1f, 1f)
-        program.setUniform3f("lightColor", 1f, 1f, 1f)
+        defShader = DefaultMaterial()
+        lightShader = LightMaterial()
 
         cam.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        program.setUniformMat4("projection", cam.projection)
-        light.setUniformMat4("projection", cam.projection)
+        defShader.getShader().setUniformMat4("projection", cam.projection)
+        lightShader.getShader().setUniformMat4("projection",cam.projection)
 
-        program.setMaterial(Material.getDefaultMaterial())
-
-        lightEntity = Entity(
-            VertexArrayObject(
-                Model.loadObj("flatcube.obj").apply { }, light
-            )
-        )
-        floor = Entity(
-            VertexArrayObject(
-                Model.loadObj("ground.obj").apply {
-                    textureFile = "GroundForest003_COL_VAR1_3K.jpg"
-                    objectColor = Vector3f(0.2f, 0.7f, 0f)
-                }, program
-            )
-        )
+        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),lightShader)
+        floor = Entity(MeshManager.loadObj("ground.obj"),defShader)
         floor.position(0f, -5f, 0f)
-
         lightEntity.position(1.2f, 1f, 2f)
-        program.setUniform3f("light.position", 1.2f, 1f, 2f)
-        program.setLight(Light.getDefaultLight())
-        program.setVec3("viewPos", cam.pos)
+        defShader.getShader().setUniform3f("light.position", 1.2f, 1f, 2f)
+        defShader.getShader().setUniform3f("light.ambient", .1f, .1f, 0.1f)
+        defShader.getShader().setUniform3f("light.diffuse", 1f, 1f, 1f)
+        defShader.getShader().setUniform3f("light.specular", .7f, .6f, 1f)
+
+        defShader.getShader().setVec3("viewPos", cam.pos)
 
 
         lightEntity.scale = 0.1f
         entities.add(lightEntity)
         entities.add(floor)
 
-        entities.add(
-            Entity(
-                VertexArrayObject(
-                    Model.loadObj(
-                        "dragon.obj"
-                    ).apply {
-                        textureFile = "container.jpg"
-                        objectColor = Vector3f(1f, 0.5f, 0.31f)
-                    }, program
-                )
-            ).apply {
-                position(2f, 0f, 2f)
-                scale = 0.2f
-            })
-        entities.add(
-            Entity(
-                VertexArrayObject(
-                    Model.loadObj(
-                        "flatcube.obj"
-                    ).apply {
-                        textureFile = "awesomeface2.png"
-                        objectColor = Vector3f(1f, 0.5f, 0.31f)
-                    }, program
-                )
-            ).apply {
-                position(-2f, 0f, 0f)
-            })
-        entities.add(
-            Entity(
-                VertexArrayObject(
-                    Model.loadObj(
-                        "cube.obj"
-                    ).apply {
-                        textureFile = "container.jpg"
-                        objectColor = Vector3f(1f, 0.5f, 0.31f)
-                    }, program
-                )
-            ).apply { position(0f, 0f, -2f) })
-
-
-        //entities[0].rotate(90f,1f,0f,0f)
-
+        entities.add(Entity(MeshManager.loadObj("dragon.obj"),defShader).apply { scale = 0.1f })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),defShader).apply { position(2f,1f,2f) })
+        entities.add(Entity(MeshManager.loadObj("cube.obj"),defShader).apply { position(-2f,1.5f,0f) })
 
         cam.yaw = 2.0
 
@@ -167,7 +109,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
         lightEntity.position.x = sin(getTimePassed() * 0.5f).toFloat() * radius
         lightEntity.position.z = cos(getTimePassed() * 0.5f).toFloat() * radius
-        program.setVec3("light.position", lightEntity.position)
+
 
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
             moveBoxes = true
@@ -186,23 +128,22 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         cam.updateCamera(deltax, deltay, delta)
         //view = cam.lookAt(Vector3f(0f,0f,0f))
-        program.setVec3("viewPos", cam.pos)
-        program.setUniformMat4("view", cam.view)
-        light.setUniformMat4("view", cam.view)
+        defShader.getShader().setVec3("viewPos", cam.pos)
+        defShader.getShader().setVec3("light.position", lightEntity.position)
+        defShader.getShader().setUniformMat4("view", cam.view)
+        lightShader.getShader().setUniformMat4("view", cam.view)
 
     }
 
     override fun draw() {
         entities.withIndex().forEach {
             if (it.index == selected) {
-                it.value.vao.shader.setUniform3f("tint", 0f, 0.5f, 1f)
+                it.value.material?.getShader()?.setUniform3f("tint", 0f, 0.5f, 1f)
             } else {
-                it.value.vao.shader.setUniform3f("tint", 0f, 0f, 0f)
+                it.value.material?.getShader()?.setUniform3f("tint", 0f, 0f, 0f)
             }
             it.value.draw()
         }
-
-
     }
 }
 

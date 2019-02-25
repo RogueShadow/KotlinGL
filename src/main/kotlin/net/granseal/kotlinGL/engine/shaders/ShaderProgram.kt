@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33.*
 
 class ShaderProgram(vert: String, frag: String){
-    private val id = glCreateProgram()
+    val id = glCreateProgram()
     init{
         val vid = VertexShader(vert).id
         val fid = FragmentShader(frag).id
@@ -53,31 +53,8 @@ class ShaderProgram(vert: String, frag: String){
         use()
         glUniform3f(glGetUniformLocation(id, name), v1, v2, v3)
     }
-    fun setMaterial(mat: Material){
-        setInt("material.diffuse",mat.diffuse)
-        setVec3("material.specular",mat.specular)
-        setFloat("material.shininess",mat.shininess)
-    }
-    fun setLight(light: Light){
-        setVec3("light.ambient",light.ambient)
-        setVec3("light.diffuse",light.diffuse)
-        setVec3("light.specular",light.specular)
-    }
 }
 
-data class Material(val diffuse: Int,
-                    val specular: Vector3f,
-                    val shininess: Float){
-    companion object {
-        fun getDefaultMaterial(): Material {
-            return Material(
-                0,
-                Vector3f(.5f, .5f, .5f),
-                32f
-            )
-        }
-    }
-}
 
 data class Light(val ambient: Vector3f,
                  val diffuse: Vector3f,
