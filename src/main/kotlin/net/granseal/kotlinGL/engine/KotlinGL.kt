@@ -78,6 +78,7 @@ abstract class KotlinGL(var width: Int = 800,
         } finally {
             VAOManager.cleanUp()
             ShaderManager.cleanUp()
+            TextureLoader.cleanUp()
             glfwTerminate()
         }
     }

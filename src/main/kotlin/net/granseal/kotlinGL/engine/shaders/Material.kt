@@ -52,7 +52,10 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
         shader.setVec3("material.specular",specular)
         shader.setFloat("material.shininess",shininess)
         shader.setVec3("material.tint",tint)
-        if (textureID != -1)shader.setInt("material.texture",textureID)
+        if (textureID != -1){
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D,textureID)
+            shader.setInt("material.tex",0)
+        }
         shader.setMat4("transform",transform)
         shader.setInt("material.useTex",if (textureID == -1)0 else 1)
     }

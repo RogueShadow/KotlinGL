@@ -1,6 +1,7 @@
 package net.granseal.kotlinGL.engine
 
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.stbi_load
 import java.nio.ByteBuffer
@@ -8,6 +9,8 @@ import java.nio.ByteBuffer
 
 
 object TextureLoader{
+
+    val texids = mutableListOf<Int>()
 
     internal data class Texture(val width: Int, val height: Int, val channels: Int, val data: ByteBuffer)
 
@@ -41,6 +44,15 @@ object TextureLoader{
         }
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, tex.width, tex.height, 0, pixelFormat, GL_UNSIGNED_BYTE, tex.data)
         glGenerateMipmap(GL_TEXTURE_2D)
+        println("Loaded Texture: ID: $texID File: $file ${tex.width}x${tex.height}")
+        texids += texID
         return texID
+    }
+
+    fun cleanUp(){
+        texids.forEach{
+            GL33.glDeleteTextures(it)
+            println("Deleting Texture: $it")
+        }
     }
 }

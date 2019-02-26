@@ -3,11 +3,14 @@ package net.granseal.kotlinGL.theScratch
 import net.granseal.kotlinGL.engine.Entity
 import net.granseal.kotlinGL.engine.KotlinGL
 import net.granseal.kotlinGL.engine.MeshManager
+import net.granseal.kotlinGL.engine.TextureLoader
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.NVLightMaxExponent
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.properties.Delegates
 
 fun main() {
     Main(1600, 900, "KotlinGL", false).run()
@@ -34,20 +37,19 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
         lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),LightShader())
-        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f)))
+
+        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f),textureID = TextureLoader.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg")))
         floor.position(0f, -5f, 0f)
         lightEntity.position(1.2f, 1f, 2f)
         light = LightConfig( )
-
 
         lightEntity.scale = 0.1f
         entities.add(lightEntity)
         entities.add(floor)
 
         entities.add(Entity(MeshManager.loadObj("dragon.obj"),DefaultShader()).apply { scale = 0.1f })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader()).apply { position(2f,1f,2f) })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(textureID = TextureLoader.loadGLTexture("container.jpg"))).apply { position(2f,1f,2f) })
         entities.add(Entity(MeshManager.loadObj("cube.obj"),DefaultShader(diffuse = Vector3f(0.3f,0.4f,0.8f))).apply { position(-2f,1.5f,0f) })
-
 
     }
 
@@ -114,7 +116,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun draw() {
         entities.withIndex().forEach {
             if (it.index == selected) {
-                if (it.value.material is DefaultShader)it.value.material
+                if (it.value.material is DefaultShader) (it.value.material as DefaultShader).tint = Vector3f(0.5f,0.5f,0f)
             } else {
                 if (it.value.material is DefaultShader) (it.value.material as DefaultShader).tint = Vector3f(0f,0f,0f)
             }
