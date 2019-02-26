@@ -3,6 +3,9 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    vec3 tint;
+    sampler2D texture;
+    int useTex;
 };
 struct Light {
     vec3 position;
@@ -17,11 +20,12 @@ in vec3 FragPos;
 uniform Material material;
 uniform vec3 viewPos;
 uniform Light light;
-uniform vec3 tint;
+
 void main()
 {
     //vec3 diffuseColor = vec3(texture(material.diffuse,texCoord));
-    vec3 diffuseColor = material.diffuse;
+    vec3 diffuseColor = material.diffuse + material.tint;
+    if (material.useTex == 1)diffuseColor = vec3(texture(material.texture,texCoord)) + material.tint;
     vec3 ambient = light.ambient * diffuseColor;
     //diffuse
     vec3 norm = normalize(Normal);

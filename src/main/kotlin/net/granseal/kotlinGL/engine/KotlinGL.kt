@@ -4,6 +4,7 @@
  */
 package net.granseal.kotlinGL.engine
 
+import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.*
@@ -34,11 +35,34 @@ abstract class KotlinGL(var width: Int = 800,
     private var lastx = 0f
     private var lasty = 0f
 
+    var fov = 45f
+        set(value){
+            field = value
+            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            ShaderManager.setAllMat4("projection",camera.projection)
+        }
+    var nearZ = 0.1f
+        set(value){
+            field = value
+            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            ShaderManager.setAllMat4("projection",camera.projection)
+        }
+    var farZ = 100f
+        set(value){
+            field = value
+            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            ShaderManager.setAllMat4("projection",camera.projection)
+        }
+
     var mouseGrabbed = true
         set(value){
             glfwSetInputMode(window, GLFW_CURSOR,if (value) GLFW_CURSOR_DISABLED else GLFW_CURSOR_NORMAL)
             field = value
         }
+
+    var camera = Camera()
+
+    var clearColor = Vector3f(0.2f,0.3f,0.4f)
 
     private val timer = Timer()
 
@@ -133,6 +157,8 @@ abstract class KotlinGL(var width: Int = 800,
                 if (w > 0 && h > 0) {
                     width = w
                     height = h
+                    camera.setPerspective(fov,width.toFloat()/height.toFloat(),nearZ,farZ)
+                    ShaderManager.setAllMat4("projection",camera.projection)
                 }
             }
         })
@@ -176,14 +202,18 @@ abstract class KotlinGL(var width: Int = 800,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.init()
         initialize()
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
         //glClearColor(0f,0f,0f,1f)
-
+        ShaderManager.setAllMat4("projection",camera.projection)
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()
             timer.update()
             timer.updateUPS()
-            update(timer.delta, lastx - mousex,lasty - mousey)
+            val delta = timer.delta
+            update(delta, lastx - mousex,lasty - mousey)
+            camera.updateCamera(lastx - mousex, lasty - mousey, delta)
+            ShaderManager.setAllMat4("view",camera.view)
+            ShaderManager.setAllVec3("viewPos",camera.pos)
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer

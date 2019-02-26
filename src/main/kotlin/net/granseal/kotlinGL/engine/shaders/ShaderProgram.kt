@@ -44,7 +44,7 @@ class ShaderProgram(vert: String, frag: String){
         glUniform1f(glGetUniformLocation(id, name), value)
     }
     fun setVec3(name: String, vec: Vector3f) = setUniform3f(name,vec.x,vec.y,vec.z)
-    fun setUniformMat4(name: String, value: Matrix4f){
+    fun setMat4(name: String, value: Matrix4f){
         use()
         GL20.glUniformMatrix4fv(GL20.glGetUniformLocation(id,name),false,value.toBuffer())
     }

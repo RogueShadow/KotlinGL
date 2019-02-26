@@ -1,12 +1,10 @@
 package net.granseal.kotlinGL.theScratch
 
-import net.granseal.kotlinGL.engine.Camera
 import net.granseal.kotlinGL.engine.Entity
 import net.granseal.kotlinGL.engine.KotlinGL
 import net.granseal.kotlinGL.engine.MeshManager
 import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.engine.shaders.DefaultMaterial
-import net.granseal.kotlinGL.engine.shaders.LightMaterial
+import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -26,45 +24,30 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var selected = 0
     var moveBoxes = false
 
-    lateinit var defShader: DefaultMaterial
-    lateinit var lightShader: LightMaterial
-
-    var cam = Camera()
-    var camSpeed = 5f
+    lateinit var light: LightConfig
 
     private lateinit var lightEntity: Entity
     lateinit var floor: Entity
 
     override fun initialize() {
-        defShader = DefaultMaterial()
-        lightShader = LightMaterial()
 
-        cam.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
+        camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        defShader.getShader().setUniformMat4("projection", cam.projection)
-        lightShader.getShader().setUniformMat4("projection",cam.projection)
-
-        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),lightShader)
-        floor = Entity(MeshManager.loadObj("ground.obj"),defShader)
+        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),LightShader())
+        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f)))
         floor.position(0f, -5f, 0f)
         lightEntity.position(1.2f, 1f, 2f)
-        defShader.getShader().setUniform3f("light.position", 1.2f, 1f, 2f)
-        defShader.getShader().setUniform3f("light.ambient", .1f, .1f, 0.1f)
-        defShader.getShader().setUniform3f("light.diffuse", 1f, 1f, 1f)
-        defShader.getShader().setUniform3f("light.specular", .7f, .6f, 1f)
-
-        defShader.getShader().setVec3("viewPos", cam.pos)
+        light = LightConfig( )
 
 
         lightEntity.scale = 0.1f
         entities.add(lightEntity)
         entities.add(floor)
 
-        entities.add(Entity(MeshManager.loadObj("dragon.obj"),defShader).apply { scale = 0.1f })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),defShader).apply { position(2f,1f,2f) })
-        entities.add(Entity(MeshManager.loadObj("cube.obj"),defShader).apply { position(-2f,1.5f,0f) })
+        entities.add(Entity(MeshManager.loadObj("dragon.obj"),DefaultShader()).apply { scale = 0.1f })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader()).apply { position(2f,1f,2f) })
+        entities.add(Entity(MeshManager.loadObj("cube.obj"),DefaultShader(diffuse = Vector3f(0.3f,0.4f,0.8f))).apply { position(-2f,1.5f,0f) })
 
-        cam.yaw = 2.0
 
     }
 
@@ -116,31 +99,24 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         } else {
             moveBoxes = false
 
-            if (keyPressed(GLFW_KEY_W)) cam.forward(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_S)) cam.backword(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_A)) cam.right(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_D)) cam.left(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_SPACE)) cam.up(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_LEFT_CONTROL)) cam.down(camSpeed * delta)
-            if (keyPressed(GLFW_KEY_X)) cam.lookAt(Vector3f())
+            if (keyPressed(GLFW_KEY_W)) camera.forward( delta)
+            if (keyPressed(GLFW_KEY_S)) camera.backword( delta)
+            if (keyPressed(GLFW_KEY_A)) camera.right( delta)
+            if (keyPressed(GLFW_KEY_D)) camera.left( delta)
+            if (keyPressed(GLFW_KEY_SPACE)) camera.up( delta)
+            if (keyPressed(GLFW_KEY_LEFT_CONTROL)) camera.down( delta)
+            if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
 
-
-        cam.updateCamera(deltax, deltay, delta)
-        //view = cam.lookAt(Vector3f(0f,0f,0f))
-        defShader.getShader().setVec3("viewPos", cam.pos)
-        defShader.getShader().setVec3("light.position", lightEntity.position)
-        defShader.getShader().setUniformMat4("view", cam.view)
-        lightShader.getShader().setUniformMat4("view", cam.view)
-
+        light.position = lightEntity.position
     }
 
     override fun draw() {
         entities.withIndex().forEach {
             if (it.index == selected) {
-                it.value.material?.getShader()?.setUniform3f("tint", 0f, 0.5f, 1f)
+                if (it.value.material is DefaultShader)it.value.material
             } else {
-                it.value.material?.getShader()?.setUniform3f("tint", 0f, 0f, 0f)
+                if (it.value.material is DefaultShader) (it.value.material as DefaultShader).tint = Vector3f(0f,0f,0f)
             }
             it.value.draw()
         }

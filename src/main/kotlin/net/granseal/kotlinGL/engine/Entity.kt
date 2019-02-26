@@ -2,6 +2,7 @@ package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.shaders.DefaultShader
 import net.granseal.kotlinGL.engine.shaders.Material
 
 open class Entity(var mesh: BaseMesh? = null, var material: Material? = null){
@@ -36,8 +37,7 @@ open class Entity(var mesh: BaseMesh? = null, var material: Material? = null){
     }
 
     fun draw(){
-        material?.getShader()?.setUniformMat4("transform",entityMatrix())
-        material?.use()
+        material?.use(entityMatrix())
         mesh?.draw()
     }
 }

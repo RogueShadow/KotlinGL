@@ -20,7 +20,7 @@ class Camera {
     var pitch = 0.0
     var yaw = 0.0
     var view = Matrix4f()
-    var projection = Matrix4f()
+    var projection = Matrix4f.perspective(45f,1920f/1080f,0.1f,100f)
 
     fun setPerspective(fov: Float, aspect: Float, near: Float, far: Float){
         projection = Matrix4f.perspective(fov, aspect, near, far)
@@ -77,30 +77,30 @@ class Camera {
     }
 
     fun forward(amount: Float){
-        moveDelta += front scale amount
+        moveDelta += front scale (amount * cameraSpeed)
         
     }
     fun backword(amount: Float){
-        moveDelta -= front scale amount
+        moveDelta -= front scale (amount * cameraSpeed)
         
     }
     fun right(amount: Float){
-        moveDelta -= (front cross up).normalize() scale amount
+        moveDelta -= (front cross up).normalize() scale (amount * cameraSpeed)
         
     }
     fun left(amount: Float){
-        moveDelta += (front cross up).normalize() scale amount
+        moveDelta += (front cross up).normalize() scale (amount * cameraSpeed)
         
     }
     fun up(amount: Float){
         val r = (up cross front).normalize()
         val u = (front cross r).normalize()
-        moveDelta += u scale amount
+        moveDelta += u scale (amount * cameraSpeed)
         
     }
     fun down(amount: Float){
         val r = (up cross front).normalize()
         val u = (front cross r).normalize()
-        moveDelta -= u scale amount
+        moveDelta -= u scale (amount * cameraSpeed)
     }
 }
