@@ -8,6 +8,10 @@ import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.NVLightMaxExponent
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.properties.Delegates
@@ -34,6 +38,17 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     override fun initialize() {
 
+        val bi = BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB)
+        val g2d = bi.createGraphics()
+        g2d.color = Color.DARK_GRAY
+        g2d.fillRect(0,0,64,64)
+        g2d.color = Color.green
+        g2d.drawString("Hello World",0,30)
+
+
+        //ImageIO.write(bi,"png", File("test.png"))
+
+
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
         lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),LightShader())
@@ -48,7 +63,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(floor)
 
         entities.add(Entity(MeshManager.loadObj("dragon.obj"),DefaultShader()).apply { scale = 0.1f })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(textureID = TextureLoader.loadGLTexture("container.jpg"))).apply { position(2f,1f,2f) })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(textureID = TextureLoader.loadBufferedImage(bi))).apply { position(2f,1f,2f) })
         entities.add(Entity(MeshManager.loadObj("cube.obj"),DefaultShader(diffuse = Vector3f(0.3f,0.4f,0.8f))).apply { position(-2f,1.5f,0f) })
 
     }
