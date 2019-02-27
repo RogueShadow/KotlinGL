@@ -7,14 +7,10 @@ import net.granseal.kotlinGL.engine.TextureLoader
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.NVLightMaxExponent
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.io.File
-import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.properties.Delegates
 
 fun main() {
     Main(1600, 900, "KotlinGL", false).run()
@@ -53,7 +49,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),LightShader())
 
-        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f),textureID = TextureLoader.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg")))
+        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f),diffTexID = TextureLoader.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg")))
         floor.position(0f, -5f, 0f)
         lightEntity.position(1.2f, 1f, 2f)
         light = LightConfig( )
@@ -63,8 +59,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(floor)
 
         entities.add(Entity(MeshManager.loadObj("dragon.obj"),DefaultShader()).apply { scale = 0.1f })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(textureID = TextureLoader.loadBufferedImage(bi))).apply { position(2f,1f,2f) })
-        entities.add(Entity(MeshManager.loadObj("cube.obj"),DefaultShader(diffuse = Vector3f(0.3f,0.4f,0.8f))).apply { position(-2f,1.5f,0f) })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi))).apply { position(2f,1f,2f) })
+        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),specTexID = TextureLoader.loadGLTexture("container2_specular.png"))).apply { position(-2f,1.5f,0f) })
 
     }
 
@@ -99,7 +95,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         entities.forEach {
-            if (it != floor) it.rotate(150f * delta, 0.0f, 1f, 0f)
+            if (it != floor) it.rotate(10f * delta, 0.0f, 1f, 0f)
         }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
@@ -129,11 +125,15 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     }
 
     override fun draw() {
+        lateinit var mat: DefaultShader
         entities.withIndex().forEach {
-            if (it.index == selected) {
-                if (it.value.material is DefaultShader) (it.value.material as DefaultShader).tint = Vector3f(0.5f,0.5f,0f)
-            } else {
-                if (it.value.material is DefaultShader) (it.value.material as DefaultShader).tint = Vector3f(0f,0f,0f)
+            if (it.value.material is DefaultShader){
+                mat = it.value.material as DefaultShader
+                if (it.index == selected) {
+                    mat.tint = Vector3f(0.1f, 0.3f, 0.4f)
+                } else {
+                    mat.tint = Vector3f(0f, 0f, 0f)
+                }
             }
             it.value.draw()
         }

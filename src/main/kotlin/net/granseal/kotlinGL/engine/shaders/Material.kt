@@ -44,7 +44,8 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
                     var specular: Vector3f = Vector3f(.5f, .5f, .5f),
                     var shininess: Float = 32f,
                     var tint: Vector3f = Vector3f(0f,0f,0f),
-                    var textureID: Int = -1): Material() {
+                    var diffTexID: Int = -1,
+                    var specTexID: Int = -1): Material() {
 
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
@@ -52,12 +53,19 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
         shader.setVec3("material.specular",specular)
         shader.setFloat("material.shininess",shininess)
         shader.setVec3("material.tint",tint)
-        if (textureID != -1){
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D,textureID)
-            shader.setInt("material.tex",0)
+        if (diffTexID != -1){
+            GL33.glActiveTexture(GL33.GL_TEXTURE0)
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D,diffTexID)
+            shader.setInt("material.diff_tex",0)
+        }
+        if (specTexID != -1){
+            GL33.glActiveTexture(GL33.GL_TEXTURE1)
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D,specTexID)
+            shader.setInt("material.spec_tex",1)
         }
         shader.setMat4("transform",transform)
-        shader.setInt("material.useTex",if (textureID == -1)0 else 1)
+        shader.setInt("material.use_diff_tex",if (diffTexID == -1)0 else 1)
+        shader.setInt("material.use_spec_tex",if (specTexID == -1)0 else 1)
     }
     fun copy(diffuse: Vector3f = this.diffuse,
              specular: Vector3f = this.specular,
