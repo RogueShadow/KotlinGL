@@ -15,16 +15,26 @@ struct Light {
     vec3 diffuse;
     vec3 specular;
 };
+struct SunLamp {
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
 out vec4 FragColor;
 in vec3 Normal;
 in vec2 texCoord;
 in vec3 FragPos;
 uniform Material material;
+uniform SunLamp sunlamp;
 uniform vec3 viewPos;
 uniform Light light;
 
 void main()
 {
+
+    vec3 finalColor = vec3(0,0,0);
+
     // Configure color based on weather or not a texture is supplied
     vec3 diffuseColor = material.diffuse + material.tint;
     if (material.use_diff_tex == 1){
@@ -35,20 +45,24 @@ void main()
         specularColor = vec3(texture(material.spec_tex,texCoord));
     }
     //ambient light
-    vec3 ambient = light.ambient * diffuseColor;
+    finalColor += light.ambient * diffuseColor;
 
     //diffuse
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);
     float diff = max( dot(norm,lightDir) , 0.0 );
-    vec3 diffuse = light.diffuse * diff * diffuseColor;
+    finalColor += light.diffuse * diff * diffuseColor;
 
     //specular
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(lightDir, norm);
     float spec = pow(max(dot(-viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light.specular * (spec * specularColor);
-    vec3 result = (ambient + diffuse + specular);
+    finalColor += (light.specular * (spec * specularColor));
 
-    FragColor = vec4(result, 1.0);
+    //sunlamp
+    vec3 sunDir = normalize(-sunlamp.diffuse);
+    float sun = max(dot(norm,sunDir) , 0.0);
+    finalColor += sunlamp.diffuse * sun * diffuseColor;
+
+    FragColor = vec4(finalColor, 1.0);
 }

@@ -30,14 +30,6 @@ object ShaderManager {
     fun setAllMat4(name: String, value: Matrix4f){
         shaders.forEach {it.setMat4(name,value)}
     }
-    fun setAllLight(light: LightConfig){
-        shaders.forEach{
-            it.setVec3("light.position",light.position)
-            it.setVec3("light.diffuse",light.diffuse)
-            it.setVec3("light.ambient",light.ambient)
-            it.setVec3("light.specular",light.specular)
-        }
-    }
 }
 
 class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
@@ -70,14 +62,16 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
     fun copy(diffuse: Vector3f = this.diffuse,
              specular: Vector3f = this.specular,
              shininess: Float = this.shininess,
-             tint: Vector3f = this.tint) = DefaultShader(diffuse,specular,shininess,tint)
+             tint: Vector3f = this.tint,
+             diffTexID: Int = this.diffTexID,
+             specTexID: Int = this.specTexID) = DefaultShader(diffuse,specular,shininess,tint,diffTexID,specTexID)
 
     companion object {
         val shaderID = ShaderManager.addShader(File("main.vert").readText(),File("main.frag").readText())
     }
 }
 
-class LightShader(var color:Vector3f = Vector3f(1f,1f,1f)): Material() {
+class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Material() {
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
         shader.setVec3("color",color)
@@ -96,13 +90,62 @@ abstract class Material{
 }
 
 class LightConfig {
-    var position: Vector3f by Delegates.observable(Vector3f(1f,1f,1f)){property, old, new ->
-        ShaderManager.setAllVec3("light.position",new)
-    }
+    var position: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("light.position",value)
+        }
     var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("light.ambient",value)
+        }
     var diffuse: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("light.diffuse",value)
+        }
     var specular: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("light.specular",value)
+        }
     init {
-        ShaderManager.setAllLight(this)
+        with(ShaderManager){
+            setAllVec3("light.position",position)
+            setAllVec3("light.ambient",ambient)
+            setAllVec3("light.diffuse",diffuse)
+            setAllVec3("light.specular",specular)
+        }
+    }
+}
+class SunLamp {
+    var direction: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("sunlamp.direction",value)
+        }
+    var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("sunlamp.ambient",value)
+        }
+    var diffuse: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("sunlamp.diffuse",value)
+        }
+    var specular: Vector3f = Vector3f(1f,1f,1f)
+        set(value){
+            field = value
+            ShaderManager.setAllVec3("sunlamp.specular",value)
+        }
+    init {
+        with(ShaderManager){
+            setAllVec3("sunlamp.direction",direction)
+            setAllVec3("sunlamp.ambient",ambient)
+            setAllVec3("sunlamp.diffuse",diffuse)
+            setAllVec3("sunlamp.specular",specular)
+        }
     }
 }

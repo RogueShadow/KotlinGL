@@ -47,7 +47,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),LightShader())
+        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),SolidColor())
 
         floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f),diffTexID = TextureLoader.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg")))
         floor.position(0f, -5f, 0f)
@@ -62,6 +62,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi))).apply { position(2f,1f,2f) })
         entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),specTexID = TextureLoader.loadGLTexture("container2_specular.png"))).apply { position(-2f,1.5f,0f) })
 
+
+        SunLamp()
     }
 
     override fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float) {}
