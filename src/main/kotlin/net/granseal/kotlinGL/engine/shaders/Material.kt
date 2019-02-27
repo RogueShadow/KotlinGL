@@ -120,7 +120,7 @@ class LightConfig {
     }
 }
 class SunLamp {
-    var direction: Vector3f = Vector3f(1f,1f,1f)
+    var direction: Vector3f = Vector3f(0.5f,-1f,0.5f)
         set(value){
             field = value
             ShaderManager.setAllVec3("sunlamp.direction",value)
@@ -130,7 +130,7 @@ class SunLamp {
             field = value
             ShaderManager.setAllVec3("sunlamp.ambient",value)
         }
-    var diffuse: Vector3f = Vector3f(1f,1f,1f)
+    var diffuse: Vector3f = Vector3f(0.5f,0.5f,0.5f)
         set(value){
             field = value
             ShaderManager.setAllVec3("sunlamp.diffuse",value)
