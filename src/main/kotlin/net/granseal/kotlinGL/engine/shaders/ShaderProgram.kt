@@ -53,21 +53,14 @@ class ShaderProgram(vert: String, frag: String){
         use()
         glUniform3f(glGetUniformLocation(id, name), v1, v2, v3)
     }
-}
 
-
-data class Light(val ambient: Vector3f,
-                 val diffuse: Vector3f,
-                 val specular: Vector3f
-){
-    companion object {
-        fun getDefaultLight(): Light = Light(
-            Vector3f(.1f, .1f, .1f),
-            Vector3f(.5f, .5f, .5f),
-            Vector3f(1f, 1f, 1f)
-        )
+    fun setUniform1f(name: String, f1: Float) {
+        use()
+        glUniform1f(glGetUniformLocation(id,name),f1)
     }
 }
+
+
 class FragmentShader(source: String){
     val id = glCreateShader(GL_FRAGMENT_SHADER)
     init {

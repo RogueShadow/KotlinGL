@@ -4,6 +4,7 @@ import net.granseal.kotlinGL.engine.Entity
 import net.granseal.kotlinGL.engine.KotlinGL
 import net.granseal.kotlinGL.engine.MeshManager
 import net.granseal.kotlinGL.engine.TextureLoader
+import net.granseal.kotlinGL.engine.math.Matrix3f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
@@ -11,6 +12,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
 fun main() {
     Main(1600, 900, "KotlinGL", false).run()
@@ -26,8 +28,11 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var entities: MutableList<Entity> = mutableListOf()
     var selected = 0
     var moveBoxes = false
+    lateinit var lights: MutableList<PointLight>
 
-    lateinit var light: LightConfig
+    val rand = Random(System.nanoTime())
+
+    lateinit var light: PointLight
 
     private lateinit var lightEntity: Entity
     lateinit var floor: Entity
@@ -49,10 +54,33 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),SolidColor())
 
-        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(0.2f,0.7f,0.1f),diffTexID = TextureLoader.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg")))
+        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(1f,1f,1f)))
         floor.position(0f, -5f, 0f)
         lightEntity.position(1.2f, 1f, 2f)
-        light = LightConfig( )
+        light = PointLight( ).apply { linear = 0.4f }
+        lights = mutableListOf<PointLight>()
+        (1..10).forEach{
+            val p = PointLight()
+            p.position.x = -20f + it*5 + rand.nextFloat()
+            p.position.z = rand.nextDouble(-20.0,20.0).toFloat()
+            p.position.y = rand.nextDouble(1.0,5.0).toFloat()
+            p.diffuse.x = rand.nextFloat()
+            p.diffuse.y = rand.nextFloat()
+            p.diffuse.z = rand.nextFloat()
+            p.diffuse.normalize()
+            p.ambient = p.diffuse
+            p.specular = p.diffuse
+            p.linear = 0.5f
+            lights.add(p)
+        }
+        lights.forEach{
+            entities.add( Entity(MeshManager.loadObj("flatcube.obj"),SolidColor(Vector3f(it.diffuse.x,it.diffuse.y,it.diffuse.z))).apply {
+                position = it.position
+                scale = 0.1f
+            })
+        }
+
+        LightManager.calculateLightIndex(camera.pos)
 
         lightEntity.scale = 0.1f
         entities.add(lightEntity)
@@ -63,7 +91,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),specTexID = TextureLoader.loadGLTexture("container2_specular.png"))).apply { position(-2f,1.5f,0f) })
 
 
-        SunLamp()
+        //SunLamp()
     }
 
     override fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float) {}
@@ -95,9 +123,21 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
 
+        val angle = 1f * delta
+        val rotate = Matrix3f(Vector3f(cos(angle),0f,sin(angle)),
+                              Vector3f(0f,1f,0f),
+            Vector3f(-sin(angle),0f,cos(angle)))
+
+
+
+        lights.forEach{
+            it.position = rotate.multiply(it.position)
+        }
+
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         entities.forEach {
             if (it != floor) it.rotate(10f * delta, 0.0f, 1f, 0f)
+            if (it.material is SolidColor)it.position = rotate.multiply(it.position)
         }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
@@ -124,6 +164,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         }
 
         light.position = lightEntity.position
+        LightManager.calculateLightIndex(camera.pos)
     }
 
     override fun draw() {
@@ -142,3 +183,22 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     }
 }
 
+object LightManager{
+    const val MAX_LIGHTS = 16
+
+    fun addLight(pointLight: Light) {
+        lights += pointLight
+    }
+
+    fun calculateLightIndex(pos: Vector3f){
+        lights.sortBy{(it.position - pos).length()}
+        lights.withIndex()
+              .take(MAX_LIGHTS)
+              .forEach{
+              it.value.update(it.index)
+        }
+        ShaderManager.setAllInt("engine_number_of_lights",if (lights.size <= MAX_LIGHTS) lights.size else MAX_LIGHTS)
+    }
+
+    val lights = mutableListOf<Light>()
+}

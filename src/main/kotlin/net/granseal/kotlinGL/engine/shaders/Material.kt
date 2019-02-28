@@ -2,6 +2,7 @@ package net.granseal.kotlinGL.engine.shaders
 
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.theScratch.LightManager
 import org.lwjgl.opengl.GL33
 import java.io.File
 import kotlin.properties.Delegates
@@ -29,6 +30,14 @@ object ShaderManager {
     }
     fun setAllMat4(name: String, value: Matrix4f){
         shaders.forEach {it.setMat4(name,value)}
+    }
+
+    fun setAllInt(name: String, i: Int) {
+        shaders.forEach{it.setInt(name,i)}
+    }
+
+    fun setAllFloat(name: String, f: Float) {
+        shaders.forEach{it.setUniform1f(name,f)}
     }
 }
 
@@ -89,33 +98,27 @@ abstract class Material{
     abstract fun use(transform: Matrix4f)
 }
 
-class LightConfig {
-    var position: Vector3f = Vector3f(1f,1f,1f)
-        set(value){
-            field = value
-            ShaderManager.setAllVec3("light.position",value)
-        }
+class PointLight: Light {
+    override var position: Vector3f = Vector3f(1f,1f,1f)
     var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
-        set(value){
-            field = value
-            ShaderManager.setAllVec3("light.ambient",value)
-        }
     var diffuse: Vector3f = Vector3f(1f,1f,1f)
-        set(value){
-            field = value
-            ShaderManager.setAllVec3("light.diffuse",value)
-        }
     var specular: Vector3f = Vector3f(1f,1f,1f)
-        set(value){
-            field = value
-            ShaderManager.setAllVec3("light.specular",value)
-        }
+    var constant: Float = 1f
+    var linear: Float = 0.09f
+    var quadratic: Float = 0.032f
+
     init {
+        LightManager.addLight(this)
+    }
+    override fun update(index: Int){
         with(ShaderManager){
-            setAllVec3("light.position",position)
-            setAllVec3("light.ambient",ambient)
-            setAllVec3("light.diffuse",diffuse)
-            setAllVec3("light.specular",specular)
+            setAllVec3("light[$index].position",position)
+            setAllVec3("light[$index].ambient",ambient)
+            setAllVec3("light[$index].diffuse",diffuse)
+            setAllVec3("light[$index].specular",specular)
+            setAllFloat("light[$index].constant",constant)
+            setAllFloat("light[$index].linear",linear)
+            setAllFloat("light[$index].quadratic",quadratic)
         }
     }
 }
@@ -148,4 +151,9 @@ class SunLamp {
             setAllVec3("sunlamp.specular",specular)
         }
     }
+}
+
+interface Light{
+    var position: Vector3f
+    fun update(index: Int)
 }

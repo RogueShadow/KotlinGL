@@ -14,6 +14,9 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float linear;
+    float constant;
+    float quadratic;
 };
 struct SunLamp {
     vec3 direction;
@@ -25,13 +28,14 @@ out vec4 FragColor;
 in vec3 Normal;
 in vec2 texCoord;
 in vec3 FragPos;
+uniform int engine_number_of_lights;
 uniform Material material;
 uniform SunLamp sunlamp;
 uniform vec3 viewPos;
-uniform Light light;
+uniform Light[16] light;
 
+vec3 CalculatePointLamp(Light light ,vec3 normal, vec3 viewDir);
 vec3 CalculateSunLamp(vec3 normal, vec3 viewDir);
-
 vec3 diffuseColor = material.diffuse + material.tint;
 vec3 specularColor = material.specular;
 
@@ -44,26 +48,35 @@ void main()
         specularColor = vec3(texture(material.spec_tex,texCoord));
     }
 
-    vec3 finalColor = vec3(0,0,0);
-
-    //ambient light
-    finalColor += light.ambient * diffuseColor;
-
-    //diffuse
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
-    float diff = max( dot(norm,lightDir) , 0.0 );
-    finalColor += light.diffuse * diff * diffuseColor;
-
-    //specular
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(lightDir, norm);
-    float spec = pow(max(dot(-viewDir, reflectDir), 0.0), material.shininess);
-    finalColor += (light.specular * (spec * specularColor));
 
-    finalColor += CalculateSunLamp(norm,viewDir);
+    vec3 finalColor = CalculateSunLamp(norm,viewDir);
+
+    for (int i = 0;i<engine_number_of_lights;i++)
+        finalColor += CalculatePointLamp(light[i],norm,viewDir);
+
 
     FragColor = vec4(finalColor, 1.0);
+}
+
+vec3 CalculatePointLamp(Light light ,vec3 normal, vec3 viewDir){
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
+    vec3 result = vec3(0,0,0);
+
+    result += light.ambient * diffuseColor * attenuation;
+
+    vec3 lightDir = normalize(light.position - FragPos);
+    float diff = max( dot(normal,lightDir), 0.0);
+    result += light.diffuse * diff * diffuseColor * attenuation;
+
+    vec3 reflectDir = reflect(lightDir, normal);
+    float spec = pow( max(dot(-viewDir,reflectDir),0.0),material.shininess);
+    result += (light.specular * (spec * specularColor)) * attenuation;
+
+    return result;
 }
 
 vec3 CalculateSunLamp(vec3 normal, vec3 viewDir){
