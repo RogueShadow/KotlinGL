@@ -1,11 +1,12 @@
 package net.granseal.kotlinGL.engine.shaders
 
+import net.granseal.kotlinGL.engine.Component
+import net.granseal.kotlinGL.engine.Entity
+import net.granseal.kotlinGL.engine.LightManager
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.theScratch.LightManager
 import org.lwjgl.opengl.GL33
 import java.io.File
-import kotlin.properties.Delegates
 
 object ShaderManager {
     private val shaders = mutableListOf<ShaderProgram>()
@@ -46,7 +47,16 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
                     var shininess: Float = 32f,
                     var tint: Vector3f = Vector3f(0f,0f,0f),
                     var diffTexID: Int = -1,
-                    var specTexID: Int = -1): Material() {
+                    var specTexID: Int = -1): Material(), Component {
+    override fun updateCP(delta: Float) {
+
+    }
+
+    override fun drawCP() {
+    }
+
+    override lateinit var parent: Entity
+
 
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
@@ -80,7 +90,18 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
     }
 }
 
-class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Material() {
+class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Material(), Component {
+    override fun updateCP(delta: Float) {
+
+    }
+
+    override fun drawCP() {
+
+    }
+
+    override lateinit var parent: Entity
+
+
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
         shader.setVec3("color",color)
@@ -98,7 +119,17 @@ abstract class Material{
     abstract fun use(transform: Matrix4f)
 }
 
-class PointLight: Light {
+class PointLight() : Light, Component {
+    override lateinit var parent: Entity
+
+    override fun updateCP(delta: Float) {
+        position = parent.position
+    }
+
+    override fun drawCP() {
+
+    }
+
     override var position: Vector3f = Vector3f(1f,1f,1f)
     var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
     var diffuse: Vector3f = Vector3f(1f,1f,1f)

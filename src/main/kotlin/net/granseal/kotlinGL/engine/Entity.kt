@@ -4,8 +4,12 @@ import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.DefaultShader
 import net.granseal.kotlinGL.engine.shaders.Material
+import net.granseal.kotlinGL.engine.shaders.SolidColor
+import java.util.*
 
-open class Entity(var mesh: BaseMesh? = null, var material: Material? = null){
+open class Entity(){
+    val components = mutableSetOf<Component>()
+    val properties = mutableMapOf<String,Any>()
     var position = Vector3f()
     var scale = 1f
 
@@ -36,8 +40,40 @@ open class Entity(var mesh: BaseMesh? = null, var material: Material? = null){
         position.z = z
     }
 
-    fun draw(){
-        material?.use(entityMatrix())
-        mesh?.draw()
+//    fun draw(){
+//        material?.use(entityMatrix())
+//        mesh?.draw()
+//    }
+    fun update(delta: Float){
+        components.forEach{
+            it.updateCP(delta)
+        }
     }
+
+    fun draw(){
+        val ds = components.singleOrNull{ it is DefaultShader} as DefaultShader?
+        ds?.use(entityMatrix())
+        val sc = components.singleOrNull{it is SolidColor} as SolidColor?
+        sc?.use(entityMatrix())
+
+        components.forEach{
+            it.drawCP()
+        }
+    }
+
+    fun addComponent(comp: Component): Entity{
+        components.add( comp )
+        comp.parent = this
+        return this
+    }
+
+
+}
+
+
+
+interface Component{
+    fun updateCP(delta: Float)
+    fun drawCP()
+    var parent: Entity
 }

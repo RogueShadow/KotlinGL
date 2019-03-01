@@ -1,9 +1,6 @@
 package net.granseal.kotlinGL.theScratch
 
-import net.granseal.kotlinGL.engine.Entity
-import net.granseal.kotlinGL.engine.KotlinGL
-import net.granseal.kotlinGL.engine.MeshManager
-import net.granseal.kotlinGL.engine.TextureLoader
+import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.math.Matrix3f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
@@ -30,6 +27,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var moveBoxes = false
     lateinit var lights: MutableList<PointLight>
 
+
     val rand = Random(System.nanoTime())
 
     lateinit var light: PointLight
@@ -52,12 +50,16 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        lightEntity = Entity(MeshManager.loadObj("flatcube.obj"),SolidColor())
+        lightEntity = Entity().addComponent(SolidColor())
+                              .addComponent(MeshManager.loadObj("flatcube.obj"))
+            .apply { position = Vector3f(1.2f,1f,2f) }
 
-        floor = Entity(MeshManager.loadObj("ground.obj"),DefaultShader(diffuse = Vector3f(1f,1f,1f)))
-        floor.position(0f, -5f, 0f)
-        lightEntity.position(1.2f, 1f, 2f)
-        light = PointLight( ).apply { linear = 0.4f }
+        floor = Entity().addComponent(DefaultShader(diffuse = Vector3f(1f,1f,1f)))
+                        .addComponent(MeshManager.loadObj("ground.obj"))
+            .apply { position = Vector3f(0f,-5f,0f) }
+
+        light = PointLight().apply { linear = 0.4f }
+
         lights = mutableListOf<PointLight>()
         (1..10).forEach{
             val p = PointLight()
@@ -74,7 +76,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             lights.add(p)
         }
         lights.forEach{
-            entities.add( Entity(MeshManager.loadObj("flatcube.obj"),SolidColor(Vector3f(it.diffuse.x,it.diffuse.y,it.diffuse.z))).apply {
+            entities.add( Entity().addComponent(SolidColor(Vector3f(it.diffuse.x,it.diffuse.y,it.diffuse.z))).addComponent(MeshManager.loadObj("flatcube.obj")).apply {
                 position = it.position
                 scale = 0.1f
             })
@@ -86,9 +88,14 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(lightEntity)
         entities.add(floor)
 
-        entities.add(Entity(MeshManager.loadObj("dragon.obj"),DefaultShader()).apply { scale = 0.1f })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi))).apply { position(2f,1f,2f) })
-        entities.add(Entity(MeshManager.loadObj("flatcube.obj"),DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),specTexID = TextureLoader.loadGLTexture("container2_specular.png"))).apply { position(-2f,1.5f,0f) })
+        entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
+            .apply { scale = 0.1f })
+        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi)))
+            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(2f,1f,2f) })
+        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),
+            specTexID = TextureLoader.loadGLTexture("container2_specular.png")))
+            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(-2f,1.5f,0f) })
+
 
 
         //SunLamp()
@@ -123,11 +130,11 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
 
+
         val angle = 1f * delta
         val rotate = Matrix3f(Vector3f(cos(angle),0f,sin(angle)),
                               Vector3f(0f,1f,0f),
             Vector3f(-sin(angle),0f,cos(angle)))
-
 
 
         lights.forEach{
@@ -137,7 +144,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
         entities.forEach {
             if (it != floor) it.rotate(10f * delta, 0.0f, 1f, 0f)
-            if (it.material is SolidColor)it.position = rotate.multiply(it.position)
+            if (it.components.singleOrNull{ it is SolidColor} != null)it.position = rotate.multiply(it.position)
         }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
@@ -170,8 +177,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun draw() {
         lateinit var mat: DefaultShader
         entities.withIndex().forEach {
-            if (it.value.material is DefaultShader){
-                mat = it.value.material as DefaultShader
+            val mat = it.value.components.singleOrNull{it is DefaultShader} as DefaultShader?
+            if (mat != null){
                 if (it.index == selected) {
                     mat.tint = Vector3f(0.1f, 0.3f, 0.4f)
                 } else {
@@ -183,22 +190,3 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     }
 }
 
-object LightManager{
-    const val MAX_LIGHTS = 16
-
-    fun addLight(pointLight: Light) {
-        lights += pointLight
-    }
-
-    fun calculateLightIndex(pos: Vector3f){
-        lights.sortBy{(it.position - pos).length()}
-        lights.withIndex()
-              .take(MAX_LIGHTS)
-              .forEach{
-              it.value.update(it.index)
-        }
-        ShaderManager.setAllInt("engine_number_of_lights",if (lights.size <= MAX_LIGHTS) lights.size else MAX_LIGHTS)
-    }
-
-    val lights = mutableListOf<Light>()
-}

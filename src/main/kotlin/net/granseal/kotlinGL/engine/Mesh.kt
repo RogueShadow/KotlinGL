@@ -12,6 +12,17 @@ import kotlin.experimental.or
 open class TexturedMesh(var textureCoords: FloatArray,
                         val normals: FloatArray,
                         override val verticies: FloatArray): BaseMesh{
+    override lateinit var parent: Entity
+
+
+    override fun updateCP(delta: Float) {
+
+    }
+
+    override fun drawCP() {
+        draw()
+    }
+
     override fun draw(){
         vao.draw(verticies.size/3)
     }
@@ -26,6 +37,15 @@ open class TexturedMesh(var textureCoords: FloatArray,
 open class ColoredMesh(var colors: FloatArray,
                        val normals: FloatArray,
                        override val verticies: FloatArray): BaseMesh {
+    override lateinit var parent: Entity
+    override fun updateCP(delta: Float) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun drawCP() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun draw() {
 
     }
@@ -38,6 +58,15 @@ open class ColoredMesh(var colors: FloatArray,
 }
 
 open class NormalMesh(var normals: FloatArray, override val verticies: FloatArray): BaseMesh{
+    override lateinit var parent: Entity
+    override fun updateCP(delta: Float) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun drawCP() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun draw() {
 
     }
@@ -51,6 +80,15 @@ open class NormalMesh(var normals: FloatArray, override val verticies: FloatArra
 }
 
 open class Mesh(override val verticies: FloatArray) : BaseMesh{
+    override lateinit var parent: Entity
+    override fun updateCP(delta: Float) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun drawCP() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun draw() {
 
     }
@@ -63,7 +101,7 @@ open class Mesh(override val verticies: FloatArray) : BaseMesh{
     override fun getType(): Byte = MESH_VERTS
 }
 
-interface BaseMesh{
+interface BaseMesh: Component{
     val verticies: FloatArray
     var vao: VAO
     companion object {
@@ -95,7 +133,7 @@ object MeshManager{
 
             if (normals != null) {
                 result += normals.slice(i..i + 2)
-                if (textureCoords != null) {
+                if (textureCoords != null && textureCoords.size > 0) {
                     result += textureCoords.slice(texI..texI + 1)
 
                     texI += 2
@@ -144,7 +182,7 @@ object MeshManager{
                 vertActual += vertRef[f1[0].toInt()-1].x
                 vertActual += vertRef[f1[0].toInt()-1].y
                 vertActual += vertRef[f1[0].toInt()-1].z
-                if (f1.size > 1){
+                if (f1.size > 1 && f1[1].isNotEmpty()){
                     texActual += texRef[f1[1].toInt()-1].x
                     texActual += texRef[f1[1].toInt()-1].y
                 }
@@ -158,7 +196,7 @@ object MeshManager{
                 vertActual += vertRef[f2[0].toInt()-1].x
                 vertActual += vertRef[f2[0].toInt()-1].y
                 vertActual += vertRef[f2[0].toInt()-1].z
-                if (f2.size > 1){
+                if (f2.size > 1 && f2[1].isNotEmpty()){
                     texActual += texRef[f2[1].toInt()-1].x
                     texActual += texRef[f2[1].toInt()-1].y
                 }
@@ -172,7 +210,7 @@ object MeshManager{
                 vertActual += vertRef[f3[0].toInt()-1].x
                 vertActual += vertRef[f3[0].toInt()-1].y
                 vertActual += vertRef[f3[0].toInt()-1].z
-                if (f3.size > 1){
+                if (f3.size > 1 && f3[1].isNotEmpty()){
                     texActual += texRef[f3[1].toInt()-1].x
                     texActual += texRef[f3[1].toInt()-1].y
                 }
