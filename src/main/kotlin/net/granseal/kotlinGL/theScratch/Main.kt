@@ -25,8 +25,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var entities: MutableList<Entity> = mutableListOf()
     var selected = 0
     var moveBoxes = false
-    lateinit var lights: MutableList<PointLight>
-
 
     val rand = Random(System.nanoTime())
 
@@ -52,16 +50,16 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         lightEntity = Entity().addComponent(SolidColor())
                               .addComponent(MeshManager.loadObj("flatcube.obj"))
+            .addComponent(PointLight().apply { linear = 0.5f })
             .apply { position = Vector3f(1.2f,1f,2f) }
 
         floor = Entity().addComponent(DefaultShader(diffuse = Vector3f(1f,1f,1f)))
                         .addComponent(MeshManager.loadObj("ground.obj"))
             .apply { position = Vector3f(0f,-5f,0f) }
 
-        light = PointLight().apply { linear = 0.4f }
 
-        lights = mutableListOf<PointLight>()
         (1..10).forEach{
+            val e = Entity()
             val p = PointLight()
             p.position.x = -20f + it*5 + rand.nextFloat()
             p.position.z = rand.nextDouble(-20.0,20.0).toFloat()
@@ -73,13 +71,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             p.ambient = p.diffuse
             p.specular = p.diffuse
             p.linear = 0.5f
-            lights.add(p)
-        }
-        lights.forEach{
-            entities.add( Entity().addComponent(SolidColor(Vector3f(it.diffuse.x,it.diffuse.y,it.diffuse.z))).addComponent(MeshManager.loadObj("flatcube.obj")).apply {
-                position = it.position
-                scale = 0.1f
-            })
+            e.addComponent(SolidColor(p.diffuse))
+            e.addComponent(MeshManager.loadObj("flatcube.obj"))
+            e.addComponent(p)
+            e.position = p.position
+            e.scale =  0.1f
+            entities.add(e)
         }
 
         LightManager.calculateLightIndex(camera.pos)
@@ -91,10 +88,14 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
             .apply { scale = 0.1f })
         entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi)))
-            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(2f,1f,2f) })
-        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadGLTexture("container2.png"),
-            specTexID = TextureLoader.loadGLTexture("container2_specular.png")))
-            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(-2f,1.5f,0f) })
+            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(2f, 1f, 2f) })
+        entities.add(Entity().addComponent(
+            DefaultShader(
+                diffTexID = TextureLoader.loadGLTexture("container2.png"),
+                specTexID = TextureLoader.loadGLTexture("container2_specular.png")
+            )
+        )
+            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(-2f, 1.5f, 0f) })
 
 
 
@@ -137,15 +138,10 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             Vector3f(-sin(angle),0f,cos(angle)))
 
 
-        lights.forEach{
-            it.position = rotate.multiply(it.position)
+        entities.forEach{
+            if (it.components.singleOrNull{it is PointLight} != null)it.position = rotate.multiply(it.position)
         }
 
-        //entities[Random.nextInt(entities.size-1)].rotate(100f*delta,0.5f,1f,0f)
-        entities.forEach {
-            if (it != floor) it.rotate(10f * delta, 0.0f, 1f, 0f)
-            if (it.components.singleOrNull{ it is SolidColor} != null)it.position = rotate.multiply(it.position)
-        }
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
 
@@ -170,19 +166,20 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
 
-        light.position = lightEntity.position
+        entities.forEach{it.update(delta)}
+
         LightManager.calculateLightIndex(camera.pos)
     }
 
     override fun draw() {
-        lateinit var mat: DefaultShader
+        var mat: DefaultShader?
         entities.withIndex().forEach {
-            val mat = it.value.components.singleOrNull{it is DefaultShader} as DefaultShader?
+            mat = it.value.components.singleOrNull{it is DefaultShader} as DefaultShader?
             if (mat != null){
                 if (it.index == selected) {
-                    mat.tint = Vector3f(0.1f, 0.3f, 0.4f)
+                    mat!!.tint = Vector3f(0.1f, 0.3f, 0.4f)
                 } else {
-                    mat.tint = Vector3f(0f, 0f, 0f)
+                    mat!!.tint = Vector3f(0f, 0f, 0f)
                 }
             }
             it.value.draw()

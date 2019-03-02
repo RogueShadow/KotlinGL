@@ -97,6 +97,8 @@ abstract class KotlinGL(var width: Int = 800,
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) // use the core profile
+        glfwWindowHint(GLFW_STENCIL_BITS, 4);
+        glfwWindowHint(GLFW_SAMPLES, 4);
 
         window = if (fullScreen){
             val mode = glfwGetVideoMode(glfwGetPrimaryMonitor()) ?: throw Exception("Couldn't retrieve video mode of primary monitor")

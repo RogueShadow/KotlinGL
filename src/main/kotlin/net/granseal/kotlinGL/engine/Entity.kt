@@ -2,12 +2,9 @@ package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.engine.shaders.DefaultShader
-import net.granseal.kotlinGL.engine.shaders.Material
-import net.granseal.kotlinGL.engine.shaders.SolidColor
-import java.util.*
+import net.granseal.kotlinGL.engine.shaders.Shader
 
-open class Entity(){
+open class Entity{
     val components = mutableSetOf<Component>()
     val properties = mutableMapOf<String,Any>()
     var position = Vector3f()
@@ -51,10 +48,8 @@ open class Entity(){
     }
 
     fun draw(){
-        val ds = components.singleOrNull{ it is DefaultShader} as DefaultShader?
+        val ds = components.singleOrNull{ it is Shader } as Shader?
         ds?.use(entityMatrix())
-        val sc = components.singleOrNull{it is SolidColor} as SolidColor?
-        sc?.use(entityMatrix())
 
         components.forEach{
             it.drawCP()

@@ -278,9 +278,9 @@ class Matrix4f {
     }
 
     /**
-     * Stores the matrix in a given Buffer.
+     * Returns matrix as a FloatBuffer
      *
-     * @param buffer The buffer to store the matrix data
+     * @return FloatBuffer
      */
     fun toBuffer(): FloatBuffer {
         val buffer = BufferUtils.createFloatBuffer(16)
