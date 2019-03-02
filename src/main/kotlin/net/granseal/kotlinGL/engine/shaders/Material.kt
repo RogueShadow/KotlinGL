@@ -48,6 +48,10 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
                     var tint: Vector3f = Vector3f(0f,0f,0f),
                     var diffTexID: Int = -1,
                     var specTexID: Int = -1): Shader, Component {
+    override fun init() {
+
+    }
+
     override fun updateCP(delta: Float) {
 
     }
@@ -91,6 +95,10 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
 }
 
 class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, Component {
+    override fun init() {
+
+    }
+
     override fun updateCP(delta: Float) {
 
     }
@@ -116,6 +124,10 @@ interface Shader {
     fun use(transform: Matrix4f)
 }
 class PointLight : Light, Component {
+    override fun init() {
+
+    }
+
     override lateinit var parent: Entity
 
     override fun updateCP(delta: Float) {

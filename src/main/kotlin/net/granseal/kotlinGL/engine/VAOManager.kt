@@ -1,10 +1,8 @@
 package net.granseal.kotlinGL.engine
 
-import net.granseal.kotlinGL.engine.BaseMesh.Companion.MESH_NORMALS
-import net.granseal.kotlinGL.engine.BaseMesh.Companion.MESH_TEX
-import net.granseal.kotlinGL.engine.BaseMesh.Companion.MESH_VERTS
+
 import org.lwjgl.opengl.GL33
-import kotlin.experimental.or
+
 
 object VAOManager {
     const val FLOAT_SIZE = 4
@@ -32,24 +30,30 @@ object VAOManager {
         GL33.glBindVertexArray(vao)
         return vao
     }
-    fun createVAOFromMesh(mesh: BaseMesh): VAO {
+    fun createVAOFromMesh(mesh: Mesh): VAO {
         val vao = genAndBindVertexArray()
         val vbo = genAndBindBuffer(GL33.GL_ARRAY_BUFFER)
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER,mesh.getCombinedFloatArray(),GL33.GL_STATIC_DRAW)
+        val data = mesh.getCombinedFloatArray()
+        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, data, GL33.GL_STATIC_DRAW)
 
-        when (mesh.getType()){
-            MESH_VERTS or MESH_NORMALS -> {
-                setAttribPointer(0,3,6 * FLOAT_SIZE,0)
-                setAttribPointer(1,3,6 * FLOAT_SIZE,3)
-            }
-            MESH_VERTS or MESH_NORMALS or MESH_TEX -> {
-                setAttribPointer(0,3,8 * FLOAT_SIZE,0)
-                setAttribPointer(1,3,8 * FLOAT_SIZE,3L * FLOAT_SIZE)
-                setAttribPointer(2,2,8 * FLOAT_SIZE,6L * FLOAT_SIZE)
-            }
+        if (mesh.normals.isNotEmpty() && mesh.textureCoords.isNotEmpty()) {
+            setAttribPointer(0, 3, 8 * FLOAT_SIZE, 0)
+            setAttribPointer(1, 3, 8 * FLOAT_SIZE, 3L * FLOAT_SIZE)
+            setAttribPointer(2, 2, 8 * FLOAT_SIZE, 6L * FLOAT_SIZE)
+        }
+        if (mesh.normals.isNotEmpty() && mesh.textureCoords.isEmpty()){
+            setAttribPointer(0, 3, 6 * FLOAT_SIZE, 0)
+            setAttribPointer(1, 3, 6 * FLOAT_SIZE, 3L * FLOAT_SIZE)
+        }
+        if (mesh.normals.isEmpty() && mesh.textureCoords.isEmpty()){
+            setAttribPointer(0,3,3* FLOAT_SIZE,0)
+        }
+        if (mesh.normals.isEmpty() && mesh.textureCoords.isNotEmpty()){
+            setAttribPointer(0, 3, 5 * FLOAT_SIZE, 0)
+            setAttribPointer(1, 2, 5 * FLOAT_SIZE, 3L * FLOAT_SIZE)
         }
 
-        return VAO(vao,vbo)
+        return VAO(vao,vbo,0,mesh.verts.size/3)
     }
 
     fun cleanUp(){
@@ -72,10 +76,10 @@ object VAOManager {
     }
 }
 
-class VAO(val vaoID: Int, val vboID: Int? = null) {
+class VAO(val vaoID: Int, val vboID: Int? = null, val startIndex: Int, val endIndex: Int) {
     fun bind() = GL33.glBindVertexArray(vaoID)
-    fun draw(count: Int) {
+    fun draw() {
         GL33.glBindVertexArray(vaoID)
-        GL33.glDrawArrays(GL33.GL_TRIANGLES,0,count)
+        GL33.glDrawArrays(GL33.GL_TRIANGLES,startIndex,endIndex)
     }
 }

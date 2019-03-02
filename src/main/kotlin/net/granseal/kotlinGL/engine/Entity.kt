@@ -5,11 +5,13 @@ import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.Shader
 
 open class Entity{
-    val components = mutableSetOf<Component>()
-    val properties = mutableMapOf<String,Any>()
+    private val components = mutableSetOf<Component>()
     var position = Vector3f()
     var scale = 1f
 
+    fun components():Set<Component>{
+        return components.toSet()
+    }
     fun entityMatrix(): Matrix4f {
         return Matrix4f.translate(
             position.x,
@@ -37,10 +39,6 @@ open class Entity{
         position.z = z
     }
 
-//    fun draw(){
-//        material?.use(entityMatrix())
-//        mesh?.draw()
-//    }
     fun update(delta: Float){
         components.forEach{
             it.updateCP(delta)
@@ -48,8 +46,8 @@ open class Entity{
     }
 
     fun draw(){
-        val ds = components.singleOrNull{ it is Shader } as Shader?
-        ds?.use(entityMatrix())
+        val shader = components.singleOrNull{ it is Shader } as Shader?
+        shader?.use(entityMatrix())
 
         components.forEach{
             it.drawCP()
@@ -59,10 +57,9 @@ open class Entity{
     fun addComponent(comp: Component): Entity{
         components.add( comp )
         comp.parent = this
+        comp.init()
         return this
     }
-
-
 }
 
 
@@ -70,5 +67,6 @@ open class Entity{
 interface Component{
     fun updateCP(delta: Float)
     fun drawCP()
+    fun init()
     var parent: Entity
 }

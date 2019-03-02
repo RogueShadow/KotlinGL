@@ -45,11 +45,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         //ImageIO.write(bi,"png", File("test.png"))
 
+        val flatCube = MeshManager.loadObj("flatcube.obj")
 
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
         lightEntity = Entity().addComponent(SolidColor())
-                              .addComponent(MeshManager.loadObj("flatcube.obj"))
+                              .addComponent(flatCube)
             .addComponent(PointLight().apply { linear = 0.5f })
             .apply { position = Vector3f(1.2f,1f,2f) }
 
@@ -72,7 +73,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             p.specular = p.diffuse
             p.linear = 0.5f
             e.addComponent(SolidColor(p.diffuse))
-            e.addComponent(MeshManager.loadObj("flatcube.obj"))
+            e.addComponent(flatCube)
             e.addComponent(p)
             e.position = p.position
             e.scale =  0.1f
@@ -88,14 +89,14 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
             .apply { scale = 0.1f })
         entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi)))
-            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(2f, 1f, 2f) })
+            .addComponent(flatCube).apply { position(2f, 1f, 2f) })
         entities.add(Entity().addComponent(
             DefaultShader(
                 diffTexID = TextureLoader.loadGLTexture("container2.png"),
                 specTexID = TextureLoader.loadGLTexture("container2_specular.png")
             )
         )
-            .addComponent(MeshManager.loadObj("flatcube.obj")).apply { position(-2f, 1.5f, 0f) })
+            .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
 
 
 
@@ -139,7 +140,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
 
         entities.forEach{
-            if (it.components.singleOrNull{it is PointLight} != null)it.position = rotate.multiply(it.position)
+            if (it.components().singleOrNull{it is PointLight} != null)it.position = rotate.multiply(it.position)
         }
 
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
@@ -174,7 +175,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun draw() {
         var mat: DefaultShader?
         entities.withIndex().forEach {
-            mat = it.value.components.singleOrNull{it is DefaultShader} as DefaultShader?
+            mat = it.value.components().singleOrNull{it is DefaultShader} as DefaultShader?
             if (mat != null){
                 if (it.index == selected) {
                     mat!!.tint = Vector3f(0.1f, 0.3f, 0.4f)
