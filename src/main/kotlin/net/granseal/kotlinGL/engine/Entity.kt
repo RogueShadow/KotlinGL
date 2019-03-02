@@ -41,7 +41,7 @@ open class Entity{
 
     fun update(delta: Float){
         components.forEach{
-            it.updateCP(delta)
+            it.update(delta)
         }
     }
 
@@ -50,7 +50,7 @@ open class Entity{
         shader?.use(entityMatrix())
 
         components.forEach{
-            it.drawCP()
+            it.draw()
         }
     }
 
@@ -60,13 +60,21 @@ open class Entity{
         comp.init()
         return this
     }
+
 }
 
 
 
 interface Component{
-    fun updateCP(delta: Float)
-    fun drawCP()
+    fun update(delta: Float)
+    fun draw()
     fun init()
     var parent: Entity
+}
+
+abstract class ComponentImpl: Component {
+    override fun update(delta: Float){}
+    override fun draw(){}
+    override fun init(){}
+    override lateinit var parent: Entity
 }

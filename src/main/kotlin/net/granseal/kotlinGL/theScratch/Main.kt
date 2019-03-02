@@ -62,9 +62,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         (1..10).forEach{
             val e = Entity()
             val p = PointLight()
-            p.position.x = -20f + it*5 + rand.nextFloat()
-            p.position.z = rand.nextDouble(-20.0,20.0).toFloat()
-            p.position.y = rand.nextDouble(1.0,5.0).toFloat()
+            e.position.x = -20f + it*5 + rand.nextFloat()
+            e.position.z = rand.nextDouble(-20.0,20.0).toFloat()
+            e.position.y = rand.nextDouble(1.0,5.0).toFloat()
             p.diffuse.x = rand.nextFloat()
             p.diffuse.y = rand.nextFloat()
             p.diffuse.z = rand.nextFloat()
@@ -75,7 +75,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             e.addComponent(SolidColor(p.diffuse))
             e.addComponent(flatCube)
             e.addComponent(p)
-            e.position = p.position
             e.scale =  0.1f
             entities.add(e)
         }
@@ -99,6 +98,11 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
 
 
+        floor.addComponent(object: ComponentImpl(){
+            override fun update(delta: Float) {
+                parent.rotate(5f*delta,0f,1f,0f)
+            }
+        })
 
         //SunLamp()
     }

@@ -4,8 +4,7 @@ import net.granseal.kotlinGL.engine.math.Vector2f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import java.io.File
 
-class Mesh: Component{
-    override lateinit var parent: Entity
+class Mesh: ComponentImpl() {
     var verts = floatArrayOf()
     var normals = floatArrayOf()
     var textureCoords = floatArrayOf()
@@ -18,10 +17,7 @@ class Mesh: Component{
         }
     }
 
-    override fun updateCP(delta: Float) {
-    }
-
-    override fun drawCP() {
+    override fun draw() {
         vao?.draw()
     }
 

@@ -12,7 +12,7 @@ object LightManager{
     }
 
     fun calculateLightIndex(pos: Vector3f){
-        lights.sortBy{(it.position - pos).length()}
+        lights.sortBy{(it.position() - pos).length()}
         lights.withIndex()
             .take(MAX_LIGHTS)
             .forEach{

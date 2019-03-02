@@ -1,6 +1,7 @@
 package net.granseal.kotlinGL.engine.shaders
 
 import net.granseal.kotlinGL.engine.Component
+import net.granseal.kotlinGL.engine.ComponentImpl
 import net.granseal.kotlinGL.engine.Entity
 import net.granseal.kotlinGL.engine.LightManager
 import net.granseal.kotlinGL.engine.math.Matrix4f
@@ -47,19 +48,7 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
                     var shininess: Float = 32f,
                     var tint: Vector3f = Vector3f(0f,0f,0f),
                     var diffTexID: Int = -1,
-                    var specTexID: Int = -1): Shader, Component {
-    override fun init() {
-
-    }
-
-    override fun updateCP(delta: Float) {
-
-    }
-
-    override fun drawCP() {
-    }
-
-    override lateinit var parent: Entity
+                    var specTexID: Int = -1): Shader, ComponentImpl() {
 
 
     override fun use(transform: Matrix4f) {
@@ -94,21 +83,7 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
     }
 }
 
-class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, Component {
-    override fun init() {
-
-    }
-
-    override fun updateCP(delta: Float) {
-
-    }
-
-    override fun drawCP() {
-
-    }
-
-    override lateinit var parent: Entity
-
+class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, ComponentImpl() {
 
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
@@ -123,22 +98,11 @@ class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, Component {
 interface Shader {
     fun use(transform: Matrix4f)
 }
-class PointLight : Light, Component {
-    override fun init() {
-
+class PointLight : Light, ComponentImpl() {
+    override fun position(): Vector3f {
+        return parent.position
     }
 
-    override lateinit var parent: Entity
-
-    override fun updateCP(delta: Float) {
-        position = parent.position
-    }
-
-    override fun drawCP() {
-
-    }
-
-    override var position: Vector3f = Vector3f(1f,1f,1f)
     var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
     var diffuse: Vector3f = Vector3f(1f,1f,1f)
     var specular: Vector3f = Vector3f(1f,1f,1f)
@@ -151,7 +115,7 @@ class PointLight : Light, Component {
     }
     override fun update(index: Int){
         with(ShaderManager){
-            setAllVec3("light[$index].position",position)
+            setAllVec3("light[$index].position",position())
             setAllVec3("light[$index].ambient",ambient)
             setAllVec3("light[$index].diffuse",diffuse)
             setAllVec3("light[$index].specular",specular)
@@ -193,6 +157,6 @@ class SunLamp {
 }
 
 interface Light{
-    var position: Vector3f
+    fun position(): Vector3f
     fun update(index: Int)
 }
