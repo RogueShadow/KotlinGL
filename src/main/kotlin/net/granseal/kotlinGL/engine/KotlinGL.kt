@@ -201,6 +201,7 @@ abstract class KotlinGL(var width: Int = 800,
         GL.createCapabilities()
         debugProc = GLUtil.setupDebugMessageCallback()
         glEnable(GL_BLEND)
+        glEnable(GL_MULTISAMPLE)
         glEnable(GL11.GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.init()

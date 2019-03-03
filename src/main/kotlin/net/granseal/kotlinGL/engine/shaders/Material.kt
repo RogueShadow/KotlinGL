@@ -95,6 +95,18 @@ class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, ComponentImpl
     }
 }
 
+class Sprite(var texID: Int): Shader, ComponentImpl() {
+    override fun use(transform: Matrix4f) {
+        val shader = ShaderManager.getShader(shaderID)
+        shader.setMat4("transform", transform)
+        GL33.glBindTexture(GL33.GL_TEXTURE_2D,texID)
+        shader.setInt("sprite",texID)
+    }
+    companion object {
+        val shaderID = ShaderManager.addShader(File("main.vert").readText(),File("sprite.frag").readText())
+    }
+}
+
 interface Shader {
     fun use(transform: Matrix4f)
 }

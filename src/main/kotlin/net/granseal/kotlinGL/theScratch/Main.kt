@@ -5,6 +5,7 @@ import net.granseal.kotlinGL.engine.math.Matrix3f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL33
 import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.cos
@@ -42,12 +43,38 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         g2d.color = Color.green
         g2d.drawString("Hello World",0,30)
 
-
+        camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
         //ImageIO.write(bi,"png", File("test.png"))
 
         val flatCube = MeshManager.loadObj("flatcube.obj")
 
-        camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
+        val quad = Mesh()
+        quad.verts = floatArrayOf(
+            -1.0f,-1.0f,0.0f,
+            -1.0f,1.0f,0.0f,
+            1.0f,1.0f,0.0f,
+            1.0f,-1.0f,0.0f
+        )
+        quad.normals = floatArrayOf(
+            1f,0f,0f,
+            1f,0f,0f,
+            1f,0f,0f,
+            1f,0f,0f
+        )
+        quad.textureCoords = floatArrayOf(
+            1f,1f,
+            1f,0f,
+            0f,0f,
+            0f,1f
+        )
+
+        quad.type = GL33.GL_TRIANGLE_FAN
+
+        entities.add(Entity().addComponent(Sprite(TextureLoader.loadGLTexture("awesomeface2.png")))
+                             .addComponent(quad)
+                             .apply { position = Vector3f(0f,3f,0f)})
+
+
 
         lightEntity = Entity().addComponent(SolidColor())
                               .addComponent(flatCube)
@@ -77,6 +104,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             e.addComponent(p)
             e.scale =  0.1f
             entities.add(e)
+            e.addComponent(object: ComponentImpl(){
+                val offset = rand.nextFloat()
+                override fun update(delta: Float) {
+                    parent.scale = 0.2f +  sin(offset + getTimePassed().toFloat())
+                }
+            })
         }
 
         LightManager.calculateLightIndex(camera.pos)
@@ -178,8 +211,11 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     override fun draw() {
         var mat: DefaultShader?
+        var mat2: Sprite?
+
         entities.withIndex().forEach {
             mat = it.value.components().singleOrNull{it is DefaultShader} as DefaultShader?
+            mat2 = it.value.components().singleOrNull{it is Sprite} as Sprite?
             if (mat != null){
                 if (it.index == selected) {
                     mat!!.tint = Vector3f(0.1f, 0.3f, 0.4f)
@@ -187,7 +223,13 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                     mat!!.tint = Vector3f(0f, 0f, 0f)
                 }
             }
-            it.value.draw()
+            if (mat2 == null)it.value.draw()
+        }
+        entities.forEach{
+            mat2 = it.components().singleOrNull(){it is Sprite} as Sprite?
+            if (mat2 != null){
+                it.draw()
+            }
         }
     }
 }

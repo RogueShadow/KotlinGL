@@ -63,8 +63,8 @@ object TextureLoader{
 
         val buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
 
-        for (x in 0 until image.width){
-            for (y in 0 until image.height){
+        for (y in 0 until image.width){
+            for (x in 0 until image.height){
                 val pixel = pixels[(y) * image.width + x]
                 buffer.put(((pixel.shr(16)) and 0xFF).toByte())
                 buffer.put(((pixel.shr(8) ) and 0xFF).toByte())

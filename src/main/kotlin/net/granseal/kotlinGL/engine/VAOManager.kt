@@ -1,7 +1,9 @@
 package net.granseal.kotlinGL.engine
 
 
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33
+import java.nio.IntBuffer
 
 
 object VAOManager {
@@ -53,7 +55,7 @@ object VAOManager {
             setAttribPointer(1, 2, 5 * FLOAT_SIZE, 3L * FLOAT_SIZE)
         }
 
-        return VAO(vao,vbo,0,mesh.verts.size/3)
+        return VAO(vao,vbo,0,mesh.verts.size/3,mesh.type)
     }
 
     fun cleanUp(){
@@ -76,10 +78,10 @@ object VAOManager {
     }
 }
 
-class VAO(val vaoID: Int, val vboID: Int? = null, val startIndex: Int, val endIndex: Int) {
+class VAO(val vaoID: Int, val vboID: Int? = null, val startIndex: Int, val endIndex: Int,val type: Int = GL33.GL_TRIANGLES) {
     fun bind() = GL33.glBindVertexArray(vaoID)
     fun draw() {
         GL33.glBindVertexArray(vaoID)
-        GL33.glDrawArrays(GL33.GL_TRIANGLES,startIndex,endIndex)
+        GL33.glDrawArrays(type,startIndex,endIndex)
     }
 }
