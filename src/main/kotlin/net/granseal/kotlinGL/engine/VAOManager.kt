@@ -1,10 +1,6 @@
 package net.granseal.kotlinGL.engine
 
-
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33
-import java.nio.IntBuffer
-
 
 object VAOManager {
     const val FLOAT_SIZE = 4

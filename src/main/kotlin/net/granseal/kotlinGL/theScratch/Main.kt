@@ -7,6 +7,7 @@ import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL33
 import java.awt.Color
+import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import kotlin.math.cos
 import kotlin.math.sin
@@ -28,6 +29,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var moveBoxes = false
 
     val rand = Random(System.nanoTime())
+    lateinit var bi: DynamicTexture
+    lateinit var g2d: Graphics2D
 
     lateinit var light: PointLight
 
@@ -35,11 +38,11 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     lateinit var floor: Entity
 
     override fun initialize() {
+        bi = DynamicTexture(512,512)
+        g2d = bi.createGraphics()
 
-        val bi = BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB)
-        val g2d = bi.createGraphics()
         g2d.color = Color.DARK_GRAY
-        g2d.fillRect(0,0,64,64)
+        g2d.fillRect(0,0,512,512)
         g2d.color = Color.green
         g2d.drawString("Hello World",0,30)
 
@@ -70,7 +73,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         quad.type = GL33.GL_TRIANGLE_FAN
 
-        entities.add(Entity().addComponent(Sprite(TextureLoader.loadGLTexture("awesomeface2.png")))
+        entities.add(Entity().addComponent(Sprite(bi.updateTexture()))
                              .addComponent(quad)
                              .apply { position = Vector3f(0f,3f,0f)})
 
@@ -120,12 +123,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
             .apply { scale = 0.1f })
-        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureLoader.loadBufferedImage(bi)))
+        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureManager.loadBufferedImage(bi)))
             .addComponent(flatCube).apply { position(2f, 1f, 2f) })
         entities.add(Entity().addComponent(
             DefaultShader(
-                diffTexID = TextureLoader.loadGLTexture("container2.png"),
-                specTexID = TextureLoader.loadGLTexture("container2_specular.png")
+                diffTexID = TextureManager.loadGLTexture("container2.png"),
+                specTexID = TextureManager.loadGLTexture("container2_specular.png")
             )
         )
             .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
@@ -204,6 +207,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
 
+        g2d.color = Color.WHITE
+        g2d.fillRect(0,0,bi.width,bi.height)
+        g2d.color = Color.BLACK
+        g2d.drawOval((256+sin(getTimePassed())*128).toInt(),(256+cos(getTimePassed())*128).toInt(),64,64)
+        bi.updateTexture()
+
         entities.forEach{it.update(delta)}
 
         LightManager.calculateLightIndex(camera.pos)
@@ -234,3 +243,16 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     }
 }
 
+class DynamicTexture(width: Int, height: Int): BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB) {
+    var texID: Int? = null
+
+    fun updateTexture(): Int {
+        if (texID == null) {
+            texID = TextureManager.loadBufferedImage(this)
+            return texID!!
+        } else {
+            TextureManager.updateTexture(this, texID!!)
+            return texID!!
+        }
+    }
+}

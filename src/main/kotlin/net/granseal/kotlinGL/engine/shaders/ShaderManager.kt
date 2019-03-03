@@ -1,8 +1,6 @@
 package net.granseal.kotlinGL.engine.shaders
 
-import net.granseal.kotlinGL.engine.Component
 import net.granseal.kotlinGL.engine.ComponentImpl
-import net.granseal.kotlinGL.engine.Entity
 import net.granseal.kotlinGL.engine.LightManager
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f

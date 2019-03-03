@@ -1,7 +1,9 @@
 package net.granseal.kotlinGL.engine
 
 import org.lwjgl.BufferUtils
+import org.lwjgl.assimp.Assimp
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.stbi_load
@@ -9,9 +11,11 @@ import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 
 
-object TextureLoader{
+object TextureManager{
 
     val texids = mutableListOf<Int>()
+
+
 
     internal data class Texture(val width: Int, val height: Int, val channels: Int, val data: ByteBuffer)
 
@@ -58,20 +62,7 @@ object TextureLoader{
     }
 
     fun loadBufferedImage(image: BufferedImage): Int {
-        val pixels = IntArray(image.width * image.height)
-        image.getRGB(0,0,image.width,image.height,pixels,0,image.width)
-
-        val buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
-
-        for (y in 0 until image.width){
-            for (x in 0 until image.height){
-                val pixel = pixels[(y) * image.width + x]
-                buffer.put(((pixel.shr(16)) and 0xFF).toByte())
-                buffer.put(((pixel.shr(8) ) and 0xFF).toByte())
-                buffer.put(( pixel and 0xFF).toByte())
-                buffer.put(((pixel.shr(24)) and 0xFF).toByte())
-            }
-        }
+        val buffer = getBufferedImageData(image)
         val texID = GL33.glGenTextures()
         glBindTexture(GL_TEXTURE_2D,texID)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
@@ -84,22 +75,28 @@ object TextureLoader{
         println("Loaded Texture: ID: $texID BufferedImage: $image ${image.width}x${image.height}")
         return texID
     }
-}
-//    private static void renderImage(BufferedImage image){
-//        int[] pixels = new int[image.getWidth() * image.getHeight()];
-//        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
-//
-//        ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 3); //4 for RGBA, 3 for RGB
-//
-//        for(int y = 0; y < image.getHeight(); y++){
-//            for(int x = 0; x < image.getWidth(); x++){
-//            int pixel = pixels[y * image.getWidth() + x];
-//            buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
-//            buffer.put((byte) ((pixel >> 8) & 0xFF));      // Green component
-//            buffer.put((byte) (pixel & 0xFF));               // Blue component
-//            buffer.put((byte) ((pixel >> 24) & 0xFF));    // Alpha component. Only for RGBA
-//        }
-//        }
-//
-//        buffer.flip(); //FOR THE LOVE OF GOD DO NOT FORGET THIS
 
+    fun updateTexture(image: BufferedImage, texID: Int){
+        val buffer = getBufferedImageData(image)
+        glBindTexture(GL11.GL_TEXTURE_2D,texID)
+        glTexSubImage2D(GL11.GL_TEXTURE_2D,0,0,0,image.width,image.height,GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
+        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
+    }
+
+    fun getBufferedImageData(image: BufferedImage): ByteBuffer {
+        val pixels = IntArray(image.width * image.height)
+        image.getRGB(0,0,image.width,image.height,pixels,0,image.width)
+        val buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
+        for (y in 0 until image.width){
+            for (x in 0 until image.height){
+                val pixel = pixels[(y) * image.width + x]
+                buffer.put(((pixel.shr(16)) and 0xFF).toByte())
+                buffer.put(((pixel.shr(8) ) and 0xFF).toByte())
+                buffer.put(( pixel and 0xFF).toByte())
+                buffer.put(((pixel.shr(24)) and 0xFF).toByte())
+            }
+        }
+
+        return buffer.flip()
+    }
+}
