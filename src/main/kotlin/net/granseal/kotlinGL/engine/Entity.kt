@@ -45,9 +45,9 @@ open class Entity{
         }
     }
 
-    fun draw(){
-        val shader = components.singleOrNull{ it is Shader } as Shader?
-        shader?.use(entityMatrix())
+    fun draw(shader: Shader? = components.singleOrNull{it is Shader} as Shader?){
+        if (shader == null)return
+        shader.use(entityMatrix())
 
         components.forEach{
             it.draw()

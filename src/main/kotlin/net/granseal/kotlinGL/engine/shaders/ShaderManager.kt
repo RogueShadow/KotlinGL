@@ -1,6 +1,7 @@
 package net.granseal.kotlinGL.engine.shaders
 
 import net.granseal.kotlinGL.engine.ComponentImpl
+import net.granseal.kotlinGL.engine.Config
 import net.granseal.kotlinGL.engine.LightManager
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
@@ -77,7 +78,7 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
              specTexID: Int = this.specTexID) = DefaultShader(diffuse,specular,shininess,tint,diffTexID,specTexID)
 
     companion object {
-        val shaderID = ShaderManager.addShader(File("main.vert").readText(),File("main.frag").readText())
+        val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "main.frag").readText())
     }
 }
 
@@ -89,7 +90,7 @@ class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, ComponentImpl
         shader.setMat4("transform",transform)
     }
     companion object {
-        val shaderID = ShaderManager.addShader(File("main.vert").readText(),File("light.frag").readText())
+        val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "light.frag").readText())
     }
 }
 
@@ -101,7 +102,18 @@ class Sprite(var texID: Int): Shader, ComponentImpl() {
         shader.setInt("sprite",texID)
     }
     companion object {
-        val shaderID = ShaderManager.addShader(File("main.vert").readText(),File("sprite.frag").readText())
+        val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "sprite.frag").readText())
+    }
+}
+
+class Depth(var lightSpaceMatrix: Matrix4f): Shader, ComponentImpl() {
+    override fun use(transform: Matrix4f) {
+        val shader = ShaderManager.getShader(shaderID)
+        shader.setMat4("transform", transform)
+        shader.setMat4("lightSpaceMatrix", lightSpaceMatrix)
+    }
+    companion object {
+        val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "depth.vert").readText(),File(Config.SHADER_DIR + "depth.frag").readText())
     }
 }
 
@@ -141,17 +153,17 @@ class SunLamp {
             field = value
             ShaderManager.setAllVec3("sunlamp.direction",value)
         }
-    var ambient: Vector3f = Vector3f(0.1f,0.1f,0.1f)
+    var ambient: Vector3f = Vector3f(0.05f,0.05f,0.05f)
         set(value){
             field = value
             ShaderManager.setAllVec3("sunlamp.ambient",value)
         }
-    var diffuse: Vector3f = Vector3f(0.5f,0.5f,0.5f)
+    var diffuse: Vector3f = Vector3f(0.25f,0.25f,0.25f)
         set(value){
             field = value
             ShaderManager.setAllVec3("sunlamp.diffuse",value)
         }
-    var specular: Vector3f = Vector3f(1f,1f,1f)
+    var specular: Vector3f = Vector3f(0.25f,0.25f,0.25f)
         set(value){
             field = value
             ShaderManager.setAllVec3("sunlamp.specular",value)

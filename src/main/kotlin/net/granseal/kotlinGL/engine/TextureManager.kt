@@ -61,16 +61,22 @@ object TextureManager{
         }
     }
 
+    fun genTexture(): Int {
+        val texID = glGenTextures()
+        texids += texID
+        return texID
+    }
+
     fun loadBufferedImage(image: BufferedImage): Int {
         val buffer = getBufferedImageData(image)
         val texID = GL33.glGenTextures()
         glBindTexture(GL_TEXTURE_2D,texID)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_POINT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_POINT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexImage2D(GL_TEXTURE_2D, 0, GL33.GL_RGBA, image.width, image.height, 0, GL33.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer.flip())
-        glGenerateMipmap(GL_TEXTURE_2D)
+        //glGenerateMipmap(GL_TEXTURE_2D)
         texids += texID
         println("Loaded Texture: ID: $texID BufferedImage: $image ${image.width}x${image.height}")
         return texID
@@ -80,7 +86,7 @@ object TextureManager{
         val buffer = getBufferedImageData(image)
         glBindTexture(GL11.GL_TEXTURE_2D,texID)
         glTexSubImage2D(GL11.GL_TEXTURE_2D,0,0,0,image.width,image.height,GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
-        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
+        //GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
     }
 
     fun getBufferedImageData(image: BufferedImage): ByteBuffer {

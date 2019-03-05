@@ -16,7 +16,7 @@ class Mesh: ComponentImpl() {
 
     override fun init(){
         if (vao == null){
-            vao = VAOManager.createVAOFromMesh(this)
+            vao = BufferManager.createVAOFromMesh(this)
         }
     }
 

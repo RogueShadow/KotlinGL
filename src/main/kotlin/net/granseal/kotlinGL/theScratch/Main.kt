@@ -73,7 +73,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         quad.type = GL33.GL_TRIANGLE_FAN
 
-        entities.add(Entity().addComponent(Sprite(bi.updateTexture()))
+        entities.add(Entity().addComponent(Sprite(shadowMap.texID))
                              .addComponent(quad)
                              .apply { position = Vector3f(0f,3f,0f)})
 
@@ -134,13 +134,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
 
 
-        floor.addComponent(object: ComponentImpl(){
-            override fun update(delta: Float) {
-                parent.rotate(5f*delta,0f,1f,0f)
-            }
-        })
 
-        //SunLamp()
+        SunLamp()
     }
 
     override fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float) {}
@@ -207,18 +202,18 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
 
-        g2d.color = Color.WHITE
-        g2d.fillRect(0,0,bi.width,bi.height)
-        g2d.color = Color.BLACK
-        g2d.drawOval((256+sin(getTimePassed())*128).toInt(),(256+cos(getTimePassed())*128).toInt(),64,64)
-        bi.updateTexture()
+//        g2d.color = Color.WHITE
+//        g2d.fillRect(0,0,bi.width,bi.height)
+//        g2d.color = Color.BLACK
+//        g2d.drawOval((256+sin(getTimePassed())*128).toInt(),(256+cos(getTimePassed())*128).toInt(),64,64)
+//        bi.updateTexture()
 
         entities.forEach{it.update(delta)}
 
         LightManager.calculateLightIndex(camera.pos)
     }
 
-    override fun draw() {
+    override fun draw(shader: Shader?) {
         var mat: DefaultShader?
         var mat2: Sprite?
 
@@ -232,12 +227,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                     mat!!.tint = Vector3f(0f, 0f, 0f)
                 }
             }
-            if (mat2 == null)it.value.draw()
+            if (mat2 == null)if(shader == null)it.value.draw()else it.value.draw(shader)
         }
         entities.forEach{
             mat2 = it.components().singleOrNull(){it is Sprite} as Sprite?
             if (mat2 != null){
-                it.draw()
+                if (shader == null)it.draw()else it.draw(shader)
             }
         }
     }

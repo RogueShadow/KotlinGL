@@ -5,6 +5,7 @@
 package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.shaders.Shader
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.*
@@ -18,12 +19,15 @@ import org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS
 import org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS
 import org.lwjgl.glfw.GLFW.GLFW_RED_BITS
 
-
+object Config {
+    const val SHADER_DIR = "shaders/"
+}
 
 abstract class KotlinGL(var width: Int = 800,
                         var height: Int = 600,
                         var windowTitle: String = "KotlinGL",
                         var fullScreen: Boolean = false) {
+
 
     private var debugProc: Callback? = null
 
@@ -34,6 +38,7 @@ abstract class KotlinGL(var width: Int = 800,
     private var mousey = 0f
     private var lastx = 0f
     private var lasty = 0f
+    private val debugT = Timer(System::nanoTime)
 
     var fov = 45f
         set(value){
@@ -64,32 +69,41 @@ abstract class KotlinGL(var width: Int = 800,
 
     var clearColor = Vector3f(0.2f,0.3f,0.4f)
 
-    private val timer = Timer()
+    lateinit var shadowMap: ShadowMap
+
+    private val timer = Timer(System::nanoTime)
 
     fun run() {
         try {
+            debugT.start()
             window = createWindow(width,height,windowTitle,fullScreen)
             initCallbacks()
+            println("Initialized Callbacks in: ${debugT.formatMark()}")
             initializeEngine()
+            println("Initialized Engine in: ${debugT.formatMark()}")
             loop()
+            debugT.restart()
             glfwDestroyWindow(window)
+            println("Destroyed window in: ${debugT.formatMark()}")
             if (debugProc != null)
                 debugProc!!.free()
         } finally {
-            VAOManager.cleanUp()
+            BufferManager.cleanUp()
             ShaderManager.cleanUp()
             TextureManager.cleanUp()
             glfwTerminate()
+            println("Cleaned up things in: ${debugT.formatMark()}")
         }
     }
 
     private fun createWindow(width: Int, height: Int,title: String,fullScreen: Boolean): Long {
         //Get our window from GLFW
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
-
+        println("ErrorCallback set in: ${debugT.formatMark()}")
         if (!glfwInit())
             throw IllegalStateException("Unable to initialize GLFW")
 
+        println("Initialized GLFW in: ${debugT.formatMark()}")
         glfwDefaultWindowHints() // optional, the current window hints are already the default
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3) // target version 3.3
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
@@ -97,8 +111,9 @@ abstract class KotlinGL(var width: Int = 800,
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) // use the core profile
-        glfwWindowHint(GLFW_STENCIL_BITS, 4);
-        glfwWindowHint(GLFW_SAMPLES, 4);
+        glfwWindowHint(GLFW_STENCIL_BITS, 4)
+        glfwWindowHint(GLFW_SAMPLES, 4)
+        println("Window Hints set in: ${debugT.formatMark()}")
 
         window = if (fullScreen){
             val mode = glfwGetVideoMode(glfwGetPrimaryMonitor()) ?: throw Exception("Couldn't retrieve video mode of primary monitor")
@@ -115,8 +130,11 @@ abstract class KotlinGL(var width: Int = 800,
         if (window == NULL)
             throw RuntimeException("Failed to create the GLFW window")
 
+        println("Created window in: ${debugT.formatMark()}")
         glfwMakeContextCurrent(window)
+        println("Context Current in: ${debugT.formatMark()}")
         glfwShowWindow(window)
+        println("Shown Window in: ${debugT.formatMark()}")
         return window
     }
 
@@ -193,6 +211,8 @@ abstract class KotlinGL(var width: Int = 800,
 
         //grab mouse cursor by default, disable by setting mouseGrabbed = false
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+
+
     }
 
     //Setting initial GL State.
@@ -204,25 +224,28 @@ abstract class KotlinGL(var width: Int = 800,
         glEnable(GL_MULTISAMPLE)
         glEnable(GL11.GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        timer.init()
-        initialize()
+        timer.restart()
+
         glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
         //glClearColor(0f,0f,0f,1f)
+        shadowMap = ShadowMap(2048,2048,width,height)
+        shadowMap.generate()
+        initialize()
         ShaderManager.setAllMat4("projection",camera.projection)
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()
-            timer.update()
-            timer.updateUPS()
-            val delta = timer.delta
-            update(delta, lastx - mousex,lasty - mousey)
-            camera.updateCamera(lastx - mousex, lasty - mousey, delta)
+            update(timer.delta(), lastx - mousex,lasty - mousey)
+            camera.updateCamera(lastx - mousex, lasty - mousey, timer.delta())
             ShaderManager.setAllMat4("view",camera.view)
             ShaderManager.setAllVec3("viewPos",camera.pos)
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
+            shadowMap.start()
+            draw(shadowMap.shader)
+            shadowMap.end()
             draw()
-            timer.updateFPS()
+            timer.mark()
             glfwSwapBuffers(window) // swap the color buffers
         }
     }
@@ -232,13 +255,13 @@ abstract class KotlinGL(var width: Int = 800,
     abstract fun keyEvent(key: String, action: Int)
     abstract fun initialize()
     abstract fun update(delta: Float, deltax: Float, deltay: Float)
-    abstract fun draw()
+    abstract fun draw(shader: Shader? = null)
     abstract fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float)
     abstract fun mouseScrolled(delta: Float)
 
     //Functions to retrieve useful state information and input
-    fun getFPS(): Int = timer.getFPS()
-    fun getTimePassed() = timer.time
+    fun getFPS(): Int = (1f/timer.delta()).toInt()
+    fun getTimePassed() = timer.timeElapsed()
     fun keyPressed(key: Int)=(glfwGetKey(window,key) == 1)
     fun keyReleased(key: Int)=(glfwGetKey(window,key) == 3)
     fun keyHeld(key: Int)=(glfwGetKey(window,key) == 2)
