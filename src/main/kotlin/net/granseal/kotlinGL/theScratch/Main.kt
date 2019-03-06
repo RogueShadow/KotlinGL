@@ -89,7 +89,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             .apply { position = Vector3f(0f,-5f,0f) }
 
 
-        (1..10).forEach{
+        (1..5).forEach{
             val e = Entity()
             val p = PointLight()
             e.position.x = -20f + it*5 + rand.nextFloat()
@@ -105,12 +105,21 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             e.addComponent(SolidColor(p.diffuse))
             e.addComponent(flatCube)
             e.addComponent(p)
-            e.scale =  0.1f
+            e.scale =  0.2f
             entities.add(e)
             e.addComponent(object: ComponentImpl(){
                 val offset = rand.nextFloat()
                 override fun update(delta: Float) {
-                    parent.scale = 0.2f +  sin(offset + getTimePassed().toFloat())
+                    parent.scale = 0.5f +  sin(offset + getTimePassed())
+                }
+            }).addComponent(object: ComponentImpl(){
+                val offset = rand.nextFloat()*0.0025f
+                val rot = Matrix3f(Vector3f(cos(offset),0f,sin(offset)),
+                Vector3f(0f,1f,0f),
+                Vector3f(-sin(offset),0f,cos(offset)))
+
+                override fun update(delta: Float) {
+                    parent.position = rot.multiply(parent.position)
                 }
             })
         }
@@ -168,15 +177,10 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         setTitle("$windowTitle ${getFPS()}")
 
 
-        val angle = 1f * delta
-        val rotate = Matrix3f(Vector3f(cos(angle),0f,sin(angle)),
-                              Vector3f(0f,1f,0f),
-            Vector3f(-sin(angle),0f,cos(angle)))
 
 
-        entities.forEach{
-            if (it.components().singleOrNull{it is PointLight} != null)it.position = rotate.multiply(it.position)
-        }
+
+
 
         //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
         //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
