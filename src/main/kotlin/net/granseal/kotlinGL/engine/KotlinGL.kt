@@ -39,6 +39,7 @@ abstract class KotlinGL(var width: Int = 800,
     private var lastx = 0f
     private var lasty = 0f
     private val debugT = Timer(System::nanoTime)
+    var renderer = Standard(width,height)
 
     var fov = 45f
         set(value){
@@ -68,8 +69,6 @@ abstract class KotlinGL(var width: Int = 800,
     var camera = Camera()
 
     var clearColor = Vector3f(0.2f,0.3f,0.4f)
-
-    lateinit var shadowMap: ShadowMap
 
     private val timer = Timer(System::nanoTime)
 
@@ -225,11 +224,9 @@ abstract class KotlinGL(var width: Int = 800,
         glEnable(GL11.GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.restart()
-
         glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
         //glClearColor(0f,0f,0f,1f)
-        shadowMap = ShadowMap(2048,2048,width,height)
-        shadowMap.generate()
+        renderer.initialize()
         initialize()
         ShaderManager.setAllMat4("projection",camera.projection)
         while (!glfwWindowShouldClose(window)) {
@@ -241,10 +238,7 @@ abstract class KotlinGL(var width: Int = 800,
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
-            shadowMap.start()
-            draw(shadowMap.shader)
-            shadowMap.end()
-            draw()
+            while (renderer.next())draw(renderer)
             timer.mark()
             glfwSwapBuffers(window) // swap the color buffers
         }
@@ -255,7 +249,7 @@ abstract class KotlinGL(var width: Int = 800,
     abstract fun keyEvent(key: String, action: Int)
     abstract fun initialize()
     abstract fun update(delta: Float, deltax: Float, deltay: Float)
-    abstract fun draw(shader: Shader? = null)
+    abstract fun draw(renderer: Renderer)
     abstract fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float)
     abstract fun mouseScrolled(delta: Float)
 
@@ -270,4 +264,41 @@ abstract class KotlinGL(var width: Int = 800,
 
     //Handy functions.
     fun setTitle(title: String) = glfwSetWindowTitle(window,title)
+}
+
+class Standard(var width: Int,var height: Int): Renderer {
+    lateinit var shadowMap: ShadowMap
+    var renderPass = 0
+
+    override fun initialize(){
+        shadowMap = ShadowMap(1024,1024,width,height)
+        shadowMap.generate()
+    }
+    override fun render(e: Entity){
+        when (renderPass){
+            0 -> return
+            1 -> renderDepthPass(e)
+            2 -> renderFinal(e)
+            else -> throw Exception("Invalid render pass.")
+        }
+    }
+    override fun next(): Boolean {
+        return when (renderPass){
+            0 -> {renderPass = 1;shadowMap.start();true}
+            1 -> {renderPass = 2;shadowMap.end();true}
+            2 -> {renderPass = 0;false }
+            else -> throw Exception("Invalid render state.")
+        }
+    }
+    private fun renderDepthPass(e: Entity){
+        e.draw(shadowMap.shader)
+    }
+    private fun renderFinal(e: Entity){
+        e.draw()
+    }
+}
+interface Renderer {
+    fun initialize()
+    fun render(e: Entity)
+    fun next(): Boolean
 }

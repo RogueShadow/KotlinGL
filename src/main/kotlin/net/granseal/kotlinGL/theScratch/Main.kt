@@ -73,7 +73,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         quad.type = GL33.GL_TRIANGLE_FAN
 
-        entities.add(Entity().addComponent(Sprite(shadowMap.texID))
+        entities.add(Entity().addComponent(Sprite(renderer.shadowMap.texID))
                              .addComponent(quad)
                              .apply { position = Vector3f(0f,3f,0f)})
 
@@ -213,7 +213,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         LightManager.calculateLightIndex(camera.pos)
     }
 
-    override fun draw(shader: Shader?) {
+    override fun draw(renderer: Renderer) {
         var mat: DefaultShader?
         var mat2: Sprite?
 
@@ -227,12 +227,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                     mat!!.tint = Vector3f(0f, 0f, 0f)
                 }
             }
-            if (mat2 == null)if(shader == null)it.value.draw()else it.value.draw(shader)
+            if (mat2 == null)renderer.render(it.value)
         }
         entities.forEach{
             mat2 = it.components().singleOrNull(){it is Sprite} as Sprite?
             if (mat2 != null){
-                if (shader == null)it.draw()else it.draw(shader)
+                renderer.render(it)
             }
         }
     }
