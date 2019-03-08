@@ -1,12 +1,13 @@
 package net.granseal.kotlinGL.engine
 
+import kool.toBuffer
 import net.granseal.kotlinGL.engine.math.Vector2f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import java.io.File
+import java.nio.FloatBuffer
 
 
-
-class Mesh: ComponentImpl() {
+class Mesh(): ComponentImpl() {
     var verts = floatArrayOf()
     var normals = floatArrayOf()
     var textureCoords = floatArrayOf()
@@ -20,6 +21,10 @@ class Mesh: ComponentImpl() {
         if (vao == null){
             vao = BufferManager.createVAOFromMesh(this)
         }
+    }
+
+    fun updateMesh(){
+        BufferManager.updateVBO(this)
     }
 
     override fun draw() {

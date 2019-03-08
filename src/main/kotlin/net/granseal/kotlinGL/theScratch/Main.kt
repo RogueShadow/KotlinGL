@@ -32,6 +32,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     lateinit var floor: Entity
     lateinit var depth: Entity
+    lateinit var flatCube: Mesh
+    var vecDraw = VectorDraw()
 
     override fun initialize() {
 
@@ -45,7 +47,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
-        val flatCube = MeshManager.loadObj("flatcube.obj")
+        flatCube = MeshManager.loadObj("flatcube.obj")
 
         val quad = Mesh()
         quad.verts = floatArrayOf(
@@ -176,6 +178,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     //key is case sensative, only normal typing keys, action 1 - pressed, 2 - held (repeats), 0 - released
     override fun keyEvent(key: String, action: Int) {
         if (action == 1) {
+            if (key == "p"){
+
+            }
             if (!moveBoxes) return
             when (key) {
                 "q" -> {
@@ -199,8 +204,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
-
-
         val radius = 5f
         lightEntity.position.x = sin(getTimePassed() * 0.5f) * radius
         lightEntity.position.z = cos(getTimePassed() * 0.5f) * radius
@@ -247,6 +250,36 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                 renderer.render(it)
             }
         }
+    }
+}
+
+
+
+class VectorDraw(){
+    val mesh = Mesh()
+    init {
+        mesh.type = GL_LINES
+    }
+
+    operator fun FloatArray.plusAssign(vec: Vector3f){
+        this.plus(vec.x)
+        this.plus(vec.y)
+        this.plus(vec.z)
+    }
+
+    fun addLine(end: Vector3f){
+        mesh.verts += Vector3f(0f,0f,0f)
+        mesh.verts += end
+    }
+    fun addLine(start: Vector3f, end: Vector3f){
+        mesh.verts += start
+        mesh.verts += end
+    }
+    fun update(){
+        mesh.updateMesh()
+    }
+    fun getEntity(): Entity{
+        return Entity().addComponent(mesh).addComponent(SolidColor())
     }
 }
 
