@@ -5,19 +5,19 @@
 package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.engine.shaders.Shader
+import net.granseal.kotlinGL.engine.renderer.Renderer
+import net.granseal.kotlinGL.engine.renderer.Standard
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.glfw.*
-import org.lwjgl.opengl.*
-import org.lwjgl.system.*
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.system.MemoryUtil.*
+import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
-import org.lwjgl.glfw.GLFW.GLFW_REFRESH_RATE
-import org.lwjgl.glfw.GLFW.glfwWindowHint
-import org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS
-import org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS
-import org.lwjgl.glfw.GLFW.GLFW_RED_BITS
+import org.lwjgl.opengl.GLUtil
+import org.lwjgl.system.Callback
+import org.lwjgl.system.MemoryUtil.NULL
+
 
 object Config {
     const val SHADER_DIR = "shaders/"
@@ -39,7 +39,7 @@ abstract class KotlinGL(var width: Int = 800,
     private var lastx = 0f
     private var lasty = 0f
     private val debugT = Timer(System::nanoTime)
-    var renderer = Standard(width,height)
+    var renderer = Standard(width, height)
 
     var fov = 45f
         set(value){
@@ -221,7 +221,8 @@ abstract class KotlinGL(var width: Int = 800,
         debugProc = GLUtil.setupDebugMessageCallback()
         glEnable(GL_BLEND)
         glEnable(GL_MULTISAMPLE)
-        glEnable(GL11.GL_DEPTH_TEST)
+        glEnable(GL33.GL_DEPTH_TEST)
+        glEnable(GL33.GL_CULL_FACE)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.restart()
         glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
@@ -266,39 +267,3 @@ abstract class KotlinGL(var width: Int = 800,
     fun setTitle(title: String) = glfwSetWindowTitle(window,title)
 }
 
-class Standard(var width: Int,var height: Int): Renderer {
-    lateinit var shadowMap: ShadowMap
-    var renderPass = 0
-
-    override fun initialize(){
-        shadowMap = ShadowMap(1024,1024,width,height)
-        shadowMap.generate()
-    }
-    override fun render(e: Entity){
-        when (renderPass){
-            0 -> return
-            1 -> renderDepthPass(e)
-            2 -> renderFinal(e)
-            else -> throw Exception("Invalid render pass.")
-        }
-    }
-    override fun next(): Boolean {
-        return when (renderPass){
-            0 -> {renderPass = 1;shadowMap.start();true}
-            1 -> {renderPass = 2;shadowMap.end();true}
-            2 -> {renderPass = 0;false }
-            else -> throw Exception("Invalid render state.")
-        }
-    }
-    private fun renderDepthPass(e: Entity){
-        e.draw(shadowMap.shader)
-    }
-    private fun renderFinal(e: Entity){
-        e.draw()
-    }
-}
-interface Renderer {
-    fun initialize()
-    fun render(e: Entity)
-    fun next(): Boolean
-}

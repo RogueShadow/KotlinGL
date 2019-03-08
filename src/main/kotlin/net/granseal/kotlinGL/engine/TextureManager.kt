@@ -1,9 +1,7 @@
 package net.granseal.kotlinGL.engine
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.assimp.Assimp
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.stbi_load

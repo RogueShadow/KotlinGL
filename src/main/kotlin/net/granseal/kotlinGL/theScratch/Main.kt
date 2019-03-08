@@ -3,6 +3,7 @@ package net.granseal.kotlinGL.theScratch
 import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.math.Matrix3f
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL33
@@ -13,41 +14,37 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-fun main() {
-    Main(1600, 900, "KotlinGL", false).run()
+fun main(args: Array<String>) {
+    val main = Main(1600, 900, "KotlinGL", false)
+    main.run()
 }
 
 class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
-    override fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float) {
-        if (button == 0 && action == 0){
-            mouseGrabbed = !mouseGrabbed
-        }
-    }
 
     var entities: MutableList<Entity> = mutableListOf()
     var selected = 0
     var moveBoxes = false
-
     val rand = Random(System.nanoTime())
+
     lateinit var bi: DynamicTexture
     lateinit var g2d: Graphics2D
-
     lateinit var light: PointLight
-
     private lateinit var lightEntity: Entity
+
     lateinit var floor: Entity
+    lateinit var depth: Entity
 
     override fun initialize() {
-        bi = DynamicTexture(512,512)
+
+        bi = DynamicTexture(256,256)
         g2d = bi.createGraphics()
 
         g2d.color = Color.DARK_GRAY
-        g2d.fillRect(0,0,512,512)
+        g2d.fillRect(0,0,bi.width,bi.height)
         g2d.color = Color.green
-        g2d.drawString("Hello World",0,30)
+        g2d.drawString("Hello World",5,30)
 
         camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
-        //ImageIO.write(bi,"png", File("test.png"))
 
         val flatCube = MeshManager.loadObj("flatcube.obj")
 
@@ -70,14 +67,38 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             0f,0f,
             0f,1f
         )
-
         quad.type = GL33.GL_TRIANGLE_FAN
 
-        entities.add(Entity().addComponent(Sprite(renderer.shadowMap.texID))
-                             .addComponent(quad)
-                             .apply { position = Vector3f(0f,3f,0f)})
+        val points = Mesh()
+        (1..500).forEach{
+            points.verts += -50 + rand.nextFloat() * 100
+            points.verts += -50 + rand.nextFloat() * 100
+            points.verts += -50 + rand.nextFloat() * 100
+        }
+        points.type = GL33.GL_LINES
 
+        entities.add(Entity().addComponent(points)
+                             .addComponent(SolidColor())
+                             .addComponent(object: ComponentImpl(){
 
+            override fun update(delta: Float) {
+                parent.rotate(delta*15f,0.5f,1f,-0.25f)
+            }
+        }))
+
+        depth = Entity().addComponent(Sprite(renderer.shadowMap.texID))
+            .addComponent(quad)
+            .apply { position = Vector3f(0f, 3f, 0f) }
+
+        entities.add(depth)
+
+        entities.add(Entity().addComponent(MeshManager.loadObj("deca2.obj"))
+            .addComponent(DefaultShader(diffuse = Vector3f(0.5f,0.8f,0.3f)))
+            .addComponent(object: ComponentImpl(){
+                override fun update(delta: Float) {
+                    parent.rotate(delta*75,0.5f,0.5f,0.5f)
+                }
+            }).apply { position = Vector3f(0f,8f,0f) })
 
         lightEntity = Entity().addComponent(SolidColor())
                               .addComponent(flatCube)
@@ -143,10 +164,14 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
 
 
-
-        SunLamp()
+        LightManager.createSunLamp()
     }
 
+    override fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float) {
+        if (button == 0 && action == 0){
+            mouseGrabbed = !mouseGrabbed
+        }
+    }
     override fun mouseMoved(mouseX: Float, mouseY: Float, deltaX: Float, deltaY: Float) {}
     override fun mouseScrolled(delta: Float) {}
     //key is case sensative, only normal typing keys, action 1 - pressed, 2 - held (repeats), 0 - released
@@ -177,19 +202,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         setTitle("$windowTitle ${getFPS()}")
 
 
-
-
-
-
-
-        //entities[selected].position((mouseX/width)*8 - 1,(1-(mouseY/height))*8 - 1,-5f)
-        //entities[selected].scale(sin(getTimePassed()).toFloat(),sin(getTimePassed()).toFloat(),sin(getTimePassed().toFloat()))
-
         val radius = 5f
-        //cam.pos.x = sin(getTimePassed()*0.5f).toFloat() * radius
-        //cam.pos.z = cos(getTimePassed()*0.5f).toFloat() * radius
-        lightEntity.position.x = sin(getTimePassed() * 0.5f).toFloat() * radius
-        lightEntity.position.z = cos(getTimePassed() * 0.5f).toFloat() * radius
+        lightEntity.position.x = sin(getTimePassed() * 0.5f) * radius
+        lightEntity.position.z = cos(getTimePassed() * 0.5f) * radius
 
 
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -205,12 +220,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             if (keyPressed(GLFW_KEY_LEFT_CONTROL)) camera.down( delta)
             if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
-
-//        g2d.color = Color.WHITE
-//        g2d.fillRect(0,0,bi.width,bi.height)
-//        g2d.color = Color.BLACK
-//        g2d.drawOval((256+sin(getTimePassed())*128).toInt(),(256+cos(getTimePassed())*128).toInt(),64,64)
-//        bi.updateTexture()
 
         entities.forEach{it.update(delta)}
 

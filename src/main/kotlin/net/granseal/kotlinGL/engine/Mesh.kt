@@ -5,12 +5,15 @@ import net.granseal.kotlinGL.engine.math.Vector3f
 import org.lwjgl.opengl.GL33
 import java.io.File
 
+
+
 class Mesh: ComponentImpl() {
     var verts = floatArrayOf()
     var normals = floatArrayOf()
     var textureCoords = floatArrayOf()
     var indices = intArrayOf()
     var type: Int = GL33.GL_TRIANGLES
+    var colors = floatArrayOf()
 
     var vao: VAO? = null
 
@@ -65,11 +68,14 @@ object MeshManager {
         val norActual = mutableListOf<Float>()
         obj.forEach {
             val line = it.split(" ")
+            if (line.isEmpty())return@forEach
             if (line[0] == "v") {
+                var s = 1
+                while (line[s].isEmpty())s++
                 vertRef += Vector3f(
-                    line[1].toFloat(),
-                    line[2].toFloat(),
-                    line[3].toFloat()
+                    line[s+0].toFloat(),
+                    line[s+1].toFloat(),
+                    line[s+2].toFloat()
                 )
             }
             if (line[0] == "vt") {
