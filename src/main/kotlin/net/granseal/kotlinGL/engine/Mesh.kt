@@ -23,8 +23,8 @@ class Mesh(): ComponentImpl() {
         }
     }
 
-    fun updateMesh(){
-        BufferManager.updateVBO(this)
+    fun updateMesh(resize: Boolean = false){
+        BufferManager.updateVBO(this,resize)
     }
 
     override fun draw() {

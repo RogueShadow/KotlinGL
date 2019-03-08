@@ -89,19 +89,24 @@ object BufferManager {
         println("Setting up AttribPointer Index: $index, size: $size, stride: $stride, offset: $offset")
     }
 
-    fun updateVBO(mesh: Mesh) {
+    fun updateVBO(mesh: Mesh, resize: Boolean = false) {
         val vao = mesh.vao
         glBindVertexArray(vao!!.vaoID)
         glBindBuffer(GL_ARRAY_BUFFER,vao.vboID)
-        //glBufferSubData(GL_ARRAY_BUFFER,0,mesh.getCombinedFloatArray())
-        val buf = glMapBuffer(GL_ARRAY_BUFFER,GL_READ_WRITE)
-        buf?.clear()
-        buf?.put(mesh.getCombinedFloatArray().toBuffer())
-        glUnmapBuffer(GL_ARRAY_BUFFER)
+        if (!resize) {
+            //glBufferSubData(GL_ARRAY_BUFFER,0,mesh.getCombinedFloatArray())
+            val buf = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
+            buf?.clear()
+            buf?.put(mesh.getCombinedFloatArray().toBuffer())
+            glUnmapBuffer(GL_ARRAY_BUFFER)
+        }else{
+            glBufferData(GL_ARRAY_BUFFER,mesh.getCombinedFloatArray(), GL_DYNAMIC_DRAW)
+            mesh.vao = mesh.vao?.copy(endIndex = mesh.verts.size/3)
+        }
     }
 }
 
-class VAO(val vaoID: Int,val vboID: Int, val startIndex: Int, val endIndex: Int,val type: Int = GL_TRIANGLES) {
+data class VAO(val vaoID: Int,val vboID: Int, val startIndex: Int, val endIndex: Int,val type: Int = GL_TRIANGLES) {
     fun draw() {
         glBindVertexArray(vaoID)
         glDrawArrays(type, startIndex, endIndex)

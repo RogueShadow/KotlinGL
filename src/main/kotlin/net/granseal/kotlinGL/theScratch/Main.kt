@@ -40,6 +40,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         bi = DynamicTexture(256,256)
         g2d = bi.createGraphics()
 
+        vecDraw.init()
         g2d.color = Color.DARK_GRAY
         g2d.fillRect(0,0,bi.width,bi.height)
         g2d.color = Color.green
@@ -70,22 +71,22 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         )
         quad.type = GL_TRIANGLE_FAN
 
-        val points = Mesh()
-        (1..250).forEach{
-            points.verts += -50 + rand.nextFloat() * 100
-            points.verts += -50 + rand.nextFloat() * 100
-            points.verts += -50 + rand.nextFloat() * 100
-        }
-        points.type = GL_LINES
-
-        entities.add(Entity().addComponent(points)
-                             .addComponent(SolidColor())
-                             .addComponent(object: ComponentImpl(){
-
-            override fun update(delta: Float) {
-                parent.rotate(delta*15f,0.5f,1f,-0.25f)
-            }
-        }))
+//        val points = Mesh()
+//        (1..250).forEach{
+//            points.verts += -50 + rand.nextFloat() * 100
+//            points.verts += -50 + rand.nextFloat() * 100
+//            points.verts += -50 + rand.nextFloat() * 100
+//        }
+//        points.type = GL_LINES
+//
+//        entities.add(Entity().addComponent(points)
+//                             .addComponent(SolidColor())
+//                             .addComponent(object: ComponentImpl(){
+//
+//            override fun update(delta: Float) {
+//                parent.rotate(delta*15f,0.5f,1f,-0.25f)
+//            }
+//        }))
 
         depth = Entity().addComponent(Sprite(renderer.shadowMap.texID))
             .addComponent(quad)
@@ -179,7 +180,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     override fun keyEvent(key: String, action: Int) {
         if (action == 1) {
             if (key == "p"){
-
+                val lp = vecDraw.getLastPos()
+                vecDraw.extendLine(lp + Vector3f(-0.02f+rand.nextFloat()*0.01f,rand.nextFloat()*0.01f,-0.02f + rand.nextFloat()*0.01f))
+                vecDraw.update()
             }
             if (!moveBoxes) return
             when (key) {
@@ -208,7 +211,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         lightEntity.position.x = sin(getTimePassed() * 0.5f) * radius
         lightEntity.position.z = cos(getTimePassed() * 0.5f) * radius
 
-
+        vecDraw.entity.update(delta)
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
             moveBoxes = true
         } else {
@@ -224,7 +227,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         }
 
         entities.forEach{it.update(delta)}
-
+        val newP = vecDraw.getLastPos() + Vector3f(-0.05f + rand.nextFloat()*0.1f,-0.049f + rand.nextFloat()*0.1f,-0.05f + rand.nextFloat()*0.1f)
+        vecDraw.extendLine(newP)
+        vecDraw.update()
         LightManager.calculateLightIndex(camera.pos)
     }
 
@@ -250,6 +255,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                 renderer.render(it)
             }
         }
+        renderer.render(vecDraw.entity)
     }
 }
 
@@ -257,29 +263,36 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
 class VectorDraw(){
     val mesh = Mesh()
+    val entity = Entity()
+
     init {
+        mesh.verts += floatArrayOf(0f,0f,0f,0f,0f,0f)
         mesh.type = GL_LINES
     }
 
-    operator fun FloatArray.plusAssign(vec: Vector3f){
-        this.plus(vec.x)
-        this.plus(vec.y)
-        this.plus(vec.z)
-    }
+    fun init(){
+        entity.addComponent(mesh).addComponent(SolidColor())
 
+    }
     fun addLine(end: Vector3f){
-        mesh.verts += Vector3f(0f,0f,0f)
-        mesh.verts += end
+        mesh.verts += floatArrayOf(0f,0f,0f)
+        mesh.verts += floatArrayOf(end.x,end.y,end.z)
     }
     fun addLine(start: Vector3f, end: Vector3f){
-        mesh.verts += start
-        mesh.verts += end
+        mesh.verts += floatArrayOf(start.x,start.y,start.z)
+        mesh.verts += floatArrayOf(end.x,end.y,end.z)
+    }
+    fun extendLine(end: Vector3f){
+        mesh.verts += mesh.verts.takeLast(3)
+        mesh.verts += floatArrayOf(end.x,end.y,end.z)
     }
     fun update(){
-        mesh.updateMesh()
+        mesh.updateMesh(true)
+        println(mesh.verts.size)
     }
-    fun getEntity(): Entity{
-        return Entity().addComponent(mesh).addComponent(SolidColor())
+    fun getLastPos():Vector3f{
+        val vert = mesh.verts.takeLast(3)
+        return Vector3f(vert[0],vert[1],vert[2])
     }
 }
 
