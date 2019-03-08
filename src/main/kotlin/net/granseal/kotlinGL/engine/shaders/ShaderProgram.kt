@@ -2,7 +2,6 @@ package net.granseal.kotlinGL.engine.shaders
 
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33.*
 
 class ShaderProgram(vert: String, frag: String){
@@ -46,7 +45,7 @@ class ShaderProgram(vert: String, frag: String){
     fun setVec3(name: String, vec: Vector3f) = setUniform3f(name,vec.x,vec.y,vec.z)
     fun setMat4(name: String, value: Matrix4f){
         use()
-        GL20.glUniformMatrix4fv(GL20.glGetUniformLocation(id,name),false,value.toBuffer())
+        glUniformMatrix4fv(glGetUniformLocation(id,name),false,value.toBuffer())
     }
 
     fun setUniform3f(name: String, v1: Float, v2: Float, v3: Float) {

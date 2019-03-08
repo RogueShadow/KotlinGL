@@ -4,23 +4,20 @@
  */
 package net.granseal.kotlinGL.engine
 
-import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.renderer.Standard
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.glfw.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil.NULL
 
-
 object Config {
     const val SHADER_DIR = "shaders/"
+
 }
 
 abstract class KotlinGL(var width: Int = 800,
@@ -39,6 +36,7 @@ abstract class KotlinGL(var width: Int = 800,
     private var lastx = 0f
     private var lasty = 0f
     private val debugT = Timer(System::nanoTime)
+
     var renderer = Standard(width, height)
 
     var fov = 45f
@@ -67,8 +65,6 @@ abstract class KotlinGL(var width: Int = 800,
         }
 
     var camera = Camera()
-
-    var clearColor = Vector3f(0.2f,0.3f,0.4f)
 
     private val timer = Timer(System::nanoTime)
 
@@ -200,7 +196,6 @@ abstract class KotlinGL(var width: Int = 800,
     }
 
     private fun initializeEngine() {
-
         //Center the window on the screen
         val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
         glfwSetWindowPos(window, ((vidmode!!.width()) / 2) - (width/2), (vidmode.height() /2) - (height/2))
@@ -210,8 +205,6 @@ abstract class KotlinGL(var width: Int = 800,
 
         //grab mouse cursor by default, disable by setting mouseGrabbed = false
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
-
-
     }
 
     //Setting initial GL State.
@@ -219,14 +212,7 @@ abstract class KotlinGL(var width: Int = 800,
     private fun loop() {
         GL.createCapabilities()
         debugProc = GLUtil.setupDebugMessageCallback()
-        glEnable(GL_BLEND)
-        glEnable(GL_MULTISAMPLE)
-        glEnable(GL33.GL_DEPTH_TEST)
-        glEnable(GL33.GL_CULL_FACE)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         timer.restart()
-        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
-        //glClearColor(0f,0f,0f,1f)
         renderer.initialize()
         initialize()
         ShaderManager.setAllMat4("projection",camera.projection)

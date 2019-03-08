@@ -2,7 +2,6 @@ package net.granseal.kotlinGL.engine
 
 import net.granseal.kotlinGL.engine.math.Vector2f
 import net.granseal.kotlinGL.engine.math.Vector3f
-import org.lwjgl.opengl.GL33
 import java.io.File
 
 
@@ -12,7 +11,7 @@ class Mesh: ComponentImpl() {
     var normals = floatArrayOf()
     var textureCoords = floatArrayOf()
     var indices = intArrayOf()
-    var type: Int = GL33.GL_TRIANGLES
+    var type: Int = 4
     var colors = floatArrayOf()
 
     var vao: VAO? = null

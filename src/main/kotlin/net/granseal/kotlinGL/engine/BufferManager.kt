@@ -1,12 +1,6 @@
 package net.granseal.kotlinGL.engine
 
-import net.granseal.kotlinGL.engine.math.Matrix4f
-import net.granseal.kotlinGL.engine.math.Vector3f
-import net.granseal.kotlinGL.engine.shaders.Depth
-import net.granseal.kotlinGL.engine.shaders.ShaderManager
-import org.lwjgl.opengl.GL33
-import org.lwjgl.system.MemoryUtil
-import kotlin.properties.Delegates
+import org.lwjgl.opengl.GL33.*
 
 object BufferManager {
     const val FLOAT_SIZE = 4
@@ -16,36 +10,36 @@ object BufferManager {
     val fboList = mutableListOf<Int>()
 
     private fun genVertexArray(): Int {
-        val vao = GL33.glGenVertexArrays()
+        val vao = glGenVertexArrays()
         vaoList += vao
         return vao
     }
     private fun genBuffer(): Int {
-        val buf = GL33.glGenBuffers()
+        val buf = glGenBuffers()
         buffers += buf
         return buf
     }
     private fun genAndBindBuffer(type: Int): Int {
         val buf = genBuffer()
-        GL33.glBindBuffer(type,buf)
+        glBindBuffer(type,buf)
         return buf
     }
     private fun genAndBindVertexArray(): Int {
         val vao = genVertexArray()
-        GL33.glBindVertexArray(vao)
+        glBindVertexArray(vao)
         return vao
     }
     fun genFrameBuffer(): Int {
-        val fbo = GL33.glGenFramebuffers()
+        val fbo = glGenFramebuffers()
         fboList += fbo
         return fbo
     }
 
     fun createVAOFromMesh(mesh: Mesh): VAO {
         val vao = genAndBindVertexArray()
-        val vbo = genAndBindBuffer(GL33.GL_ARRAY_BUFFER)
+        val vbo = genAndBindBuffer(GL_ARRAY_BUFFER)
         val data = mesh.getCombinedFloatArray()
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, data, GL33.GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW)
 
         if (mesh.normals.isNotEmpty() && mesh.textureCoords.isNotEmpty()) {
             setAttribPointer(0, 3, 8 * FLOAT_SIZE, 0)
@@ -69,15 +63,15 @@ object BufferManager {
 
     fun cleanUp(){
         vaoList.forEach {
-            GL33.glDeleteVertexArrays(it)
+            glDeleteVertexArrays(it)
             println("Deleting VAO: $it")
         }
         buffers.forEach{
-            GL33.glDeleteBuffers(it)
+            glDeleteBuffers(it)
             println("Deleting Buffer: $it")
         }
         fboList.forEach {
-            GL33.glDeleteFramebuffers(it)
+            glDeleteFramebuffers(it)
             println("Deleting Frame Buffer: $it")
         }
         vaoList.clear()
@@ -86,15 +80,15 @@ object BufferManager {
     }
 
     private fun setAttribPointer(index: Int, size: Int, stride: Int, offset: Long){
-        GL33.glVertexAttribPointer(index, size, GL33.GL_FLOAT, false, stride, offset)
-        GL33.glEnableVertexAttribArray(index)
+        glVertexAttribPointer(index, size, GL_FLOAT, false, stride, offset)
+        glEnableVertexAttribArray(index)
         println("Setting up AttribPointer Index: $index, size: $size, stride: $stride, offset: $offset")
     }
 }
 
-class VAO(val vaoID: Int, val startIndex: Int, val endIndex: Int,val type: Int = GL33.GL_TRIANGLES) {
+class VAO(val vaoID: Int, val startIndex: Int, val endIndex: Int,val type: Int = GL_TRIANGLES) {
     fun draw() {
-        GL33.glBindVertexArray(vaoID)
-        GL33.glDrawArrays(type,startIndex,endIndex)
+        glBindVertexArray(vaoID)
+        glDrawArrays(type,startIndex,endIndex)
     }
 }

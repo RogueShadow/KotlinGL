@@ -4,17 +4,23 @@ import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
 import net.granseal.kotlinGL.engine.shaders.Depth
-import net.granseal.kotlinGL.engine.shaders.Light
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
-import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.GL33.*
 import kotlin.properties.Delegates
 
 class Standard(var width: Int,var height: Int): Renderer {
+    var clearColor = Vector3f(0.2f,0.3f,0.4f)
     val shadowMapResolution = 2048
     lateinit var shadowMap: ShadowMap
     var renderPass = 0
 
     override fun initialize(){
+        glEnable(GL_BLEND)
+        glEnable(GL_MULTISAMPLE)
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_CULL_FACE)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f)
         shadowMap = ShadowMap(shadowMapResolution,shadowMapResolution,width,height)
         shadowMap.generate()
     }
@@ -49,29 +55,29 @@ class Standard(var width: Int,var height: Int): Renderer {
         fun generate() {
             fboID = BufferManager.genFrameBuffer()
             texID = TextureManager.genTexture()
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D, texID)
-            GL33.glTexImage2D(
-                GL33.GL_TEXTURE_2D, 0, GL33.GL_DEPTH_COMPONENT, mapWidth, mapHeight,
-                0, GL33.GL_DEPTH_COMPONENT, GL33.GL_FLOAT, 0L
+            glBindTexture(GL_TEXTURE_2D, texID)
+            glTexImage2D(
+                GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapWidth, mapHeight,
+                0, GL_DEPTH_COMPONENT, GL_FLOAT, 0L
             )
 
-            GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_FILTER, GL33.GL_LINEAR)
-            GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAG_FILTER, GL33.GL_LINEAR)
-            GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_WRAP_S, GL33.GL_CLAMP_TO_BORDER)
-            GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_WRAP_T, GL33.GL_CLAMP_TO_BORDER)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
             val borderColor = floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f)
-            GL33.glTexParameterfv(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_BORDER_COLOR, borderColor)
-            GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER,fboID)
-            GL33.glFramebufferTexture2D(GL33.GL_FRAMEBUFFER,GL33.GL_DEPTH_ATTACHMENT,GL33.GL_TEXTURE_2D, texID, 0)
-            GL33.glDrawBuffer(GL33.GL_NONE)
-            GL33.glReadBuffer(GL33.GL_NONE)
-            GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER, 0)
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor)
+            glBindFramebuffer(GL_FRAMEBUFFER,fboID)
+            glFramebufferTexture2D(GL_FRAMEBUFFER,GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D, texID, 0)
+            glDrawBuffer(GL_NONE)
+            glReadBuffer(GL_NONE)
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
         }
 
         fun start(){
-            GL33.glViewport(0,0,mapWidth,mapHeight)
-            GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER,fboID)
-            GL33.glClear(GL33.GL_DEPTH_BUFFER_BIT)
+            glViewport(0,0,mapWidth,mapHeight)
+            glBindFramebuffer(GL_FRAMEBUFFER,fboID)
+            glClear(GL_DEPTH_BUFFER_BIT)
             val near = 1f
             val far = 150f
             val lightProj = Matrix4f.orthographic(-20f,20f,-40f,20f,near,far)
@@ -86,18 +92,18 @@ class Standard(var width: Int,var height: Int): Renderer {
             val lightView = cam.view
             val lsm = lightProj * lightView
             shader.lightSpaceMatrix = lsm
-            GL33.glCullFace(GL33.GL_FRONT)
+            glCullFace(GL_FRONT)
         }
 
         fun end(){
-            GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER,0)
-            GL33.glViewport(0,0,currentWidth,currentHeight)
-            GL33.glClear(GL33.GL_COLOR_BUFFER_BIT or GL33.GL_DEPTH_BUFFER_BIT)
+            glBindFramebuffer(GL_FRAMEBUFFER,0)
+            glViewport(0,0,currentWidth,currentHeight)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             //config shaders matrices
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D,texID)
+            glBindTexture(GL_TEXTURE_2D,texID)
             ShaderManager.setAllMat4("lightSpaceMatrix",shader.lightSpaceMatrix)
             ShaderManager.setAllInt("shadowMap",texID)
-            GL33.glCullFace(GL33.GL_BACK)
+            glCullFace(GL_BACK)
         }
     }
 }

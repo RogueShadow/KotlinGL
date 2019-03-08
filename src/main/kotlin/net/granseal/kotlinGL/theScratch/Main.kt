@@ -1,12 +1,11 @@
 package net.granseal.kotlinGL.theScratch
 
 import net.granseal.kotlinGL.engine.*
-import net.granseal.kotlinGL.engine.math.Matrix3f
-import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.math.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.GL33.*
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -67,15 +66,15 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             0f,0f,
             0f,1f
         )
-        quad.type = GL33.GL_TRIANGLE_FAN
+        quad.type = GL_TRIANGLE_FAN
 
         val points = Mesh()
-        (1..500).forEach{
+        (1..250).forEach{
             points.verts += -50 + rand.nextFloat() * 100
             points.verts += -50 + rand.nextFloat() * 100
             points.verts += -50 + rand.nextFloat() * 100
         }
-        points.type = GL33.GL_LINES
+        points.type = GL_LINES
 
         entities.add(Entity().addComponent(points)
                              .addComponent(SolidColor())

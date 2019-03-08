@@ -1,8 +1,6 @@
 package net.granseal.kotlinGL.engine
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.stbi_load
 import java.awt.image.BufferedImage
@@ -12,8 +10,6 @@ import java.nio.ByteBuffer
 object TextureManager{
 
     val texids = mutableListOf<Int>()
-
-
 
     internal data class Texture(val width: Int, val height: Int, val channels: Int, val data: ByteBuffer)
 
@@ -54,7 +50,7 @@ object TextureManager{
 
     fun cleanUp(){
         texids.forEach{
-            GL33.glDeleteTextures(it)
+            glDeleteTextures(it)
             println("Deleting Texture: $it")
         }
     }
@@ -67,13 +63,13 @@ object TextureManager{
 
     fun loadBufferedImage(image: BufferedImage): Int {
         val buffer = getBufferedImageData(image)
-        val texID = GL33.glGenTextures()
+        val texID = glGenTextures()
         glBindTexture(GL_TEXTURE_2D,texID)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL33.GL_RGBA, image.width, image.height, 0, GL33.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer.flip())
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer.flip())
         //glGenerateMipmap(GL_TEXTURE_2D)
         texids += texID
         println("Loaded Texture: ID: $texID BufferedImage: $image ${image.width}x${image.height}")
@@ -82,8 +78,8 @@ object TextureManager{
 
     fun updateTexture(image: BufferedImage, texID: Int){
         val buffer = getBufferedImageData(image)
-        glBindTexture(GL11.GL_TEXTURE_2D,texID)
-        glTexSubImage2D(GL11.GL_TEXTURE_2D,0,0,0,image.width,image.height,GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
+        glBindTexture(GL_TEXTURE_2D,texID)
+        glTexSubImage2D(GL_TEXTURE_2D,0,0,0,image.width,image.height,GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         //GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
     }
 

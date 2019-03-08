@@ -5,7 +5,7 @@ import net.granseal.kotlinGL.engine.Config
 import net.granseal.kotlinGL.engine.LightManager
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
-import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.GL33.*
 import java.io.File
 
 object ShaderManager {
@@ -20,7 +20,7 @@ object ShaderManager {
 
     fun cleanUp(){
         shaders.forEach{
-            GL33.glDeleteProgram(it.id)
+            glDeleteProgram(it.id)
             println("Deleting Shader: ${it.id}")
         }
         shaders.clear()
@@ -57,13 +57,13 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
         shader.setFloat("material.shininess",shininess)
         shader.setVec3("material.tint",tint)
         if (diffTexID != -1){
-            GL33.glActiveTexture(GL33.GL_TEXTURE0)
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D,diffTexID)
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_2D,diffTexID)
             shader.setInt("material.diff_tex",0)
         }
         if (specTexID != -1){
-            GL33.glActiveTexture(GL33.GL_TEXTURE1)
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D,specTexID)
+            glActiveTexture(GL_TEXTURE1)
+            glBindTexture(GL_TEXTURE_2D,specTexID)
             shader.setInt("material.spec_tex",1)
         }
         shader.setMat4("transform",transform)
@@ -98,7 +98,7 @@ class Sprite(var texID: Int): Shader, ComponentImpl() {
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
         shader.setMat4("transform", transform)
-        GL33.glBindTexture(GL33.GL_TEXTURE_2D,texID)
+        glBindTexture(GL_TEXTURE_2D,texID)
         shader.setInt("sprite",texID)
     }
     companion object {
