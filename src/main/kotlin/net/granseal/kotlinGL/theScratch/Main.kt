@@ -27,8 +27,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     lateinit var bi: DynamicTexture
     lateinit var g2d: Graphics2D
-    lateinit var light: PointLight
-    private lateinit var lightEntity: Entity
 
     lateinit var floor: Entity
     lateinit var depth: Entity
@@ -36,6 +34,8 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var vecDraw = VectorDraw()
 
     override fun initialize() {
+
+
 
         bi = DynamicTexture(256,256)
         g2d = bi.createGraphics()
@@ -102,14 +102,13 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                 }
             }).apply { position = Vector3f(0f,8f,0f) })
 
-        lightEntity = Entity().addComponent(SolidColor())
-                              .addComponent(flatCube)
-            .addComponent(PointLight().apply { linear = 0.5f })
-            .apply { position = Vector3f(1.2f,1f,2f) }
 
-        floor = Entity().addComponent(DefaultShader(diffuse = Vector3f(1f,1f,1f)))
-                        .addComponent(MeshManager.loadObj("ground.obj"))
-            .apply { position = Vector3f(0f,-5f,0f) }
+        floor = Entity().addComponent(DefaultShader(
+            diffTexID = TextureManager.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg"),
+            shininess = 0.001f
+                ))
+                        .addComponent(MeshManager.loadObj("terrain.obj"))
+            .apply { position = Vector3f(-20f,-71f,-20f);scale = 70f }
 
 
         (1..5).forEach{
@@ -122,9 +121,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             p.diffuse.y = rand.nextFloat()
             p.diffuse.z = rand.nextFloat()
             p.diffuse.normalize()
-            p.ambient = p.diffuse
-            p.specular = p.diffuse
-            p.linear = 0.5f
+            p.ambient = p.diffuse.scale(0.1f)
+            p.specular = p.diffuse.scale(0.1f)
+            p.linear = 0.25f
             e.addComponent(SolidColor(p.diffuse))
             e.addComponent(flatCube)
             e.addComponent(p)
@@ -142,15 +141,13 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                 Vector3f(-sin(offset),0f,cos(offset)))
 
                 override fun update(delta: Float) {
-                    parent.position = rot.multiply(parent.position)
+                    parent.position = rot * parent.position
                 }
             })
         }
 
         LightManager.calculateLightIndex(camera.pos)
 
-        lightEntity.scale = 0.1f
-        entities.add(lightEntity)
         entities.add(floor)
 
         entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
@@ -207,9 +204,6 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
-        val radius = 5f
-        lightEntity.position.x = sin(getTimePassed() * 0.5f) * radius
-        lightEntity.position.z = cos(getTimePassed() * 0.5f) * radius
 
         vecDraw.entity.update(delta)
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -223,13 +217,12 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             if (keyPressed(GLFW_KEY_D)) camera.left( delta)
             if (keyPressed(GLFW_KEY_SPACE)) camera.up( delta)
             if (keyPressed(GLFW_KEY_LEFT_CONTROL)) camera.down( delta)
-            if (keyPressed(GLFW_KEY_X)) camera.lookAt(Vector3f())
         }
 
         entities.forEach{it.update(delta)}
-        val newP = vecDraw.getLastPos() + Vector3f(-0.05f + rand.nextFloat()*0.1f,-0.049f + rand.nextFloat()*0.1f,-0.05f + rand.nextFloat()*0.1f)
-        vecDraw.extendLine(newP)
-        vecDraw.update()
+//        val newP = vecDraw.getLastPos() + Vector3f(-0.05f + rand.nextFloat()*0.1f,-0.049f + rand.nextFloat()*0.1f,-0.05f + rand.nextFloat()*0.1f)
+//        vecDraw.extendLine(newP)
+//        vecDraw.update()
         LightManager.calculateLightIndex(camera.pos)
     }
 

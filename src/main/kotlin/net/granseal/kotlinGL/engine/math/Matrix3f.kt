@@ -70,7 +70,7 @@ class Matrix3f {
      *
      * @return Sum of this + other
      */
-    fun add(other: Matrix3f): Matrix3f {
+    operator fun plus(other: Matrix3f): Matrix3f {
         val result = Matrix3f()
 
         result.m00 = this.m00 + other.m00
@@ -94,7 +94,7 @@ class Matrix3f {
      * @return Negated matrix
      */
     fun negate(): Matrix3f {
-        return multiply(-1f)
+        return this * (-1f)
     }
 
     /**
@@ -105,7 +105,7 @@ class Matrix3f {
      * @return Difference of this - other
      */
     fun subtract(other: Matrix3f): Matrix3f {
-        return this.add(other.negate())
+        return this + other.negate()
     }
 
     /**
@@ -115,7 +115,7 @@ class Matrix3f {
      *
      * @return Scalar product of this * scalar
      */
-    fun multiply(scalar: Float): Matrix3f {
+    operator fun times(scalar: Float): Matrix3f {
         val result = Matrix3f()
 
         result.m00 = this.m00 * scalar
@@ -140,7 +140,7 @@ class Matrix3f {
      *
      * @return Vector product of this * other
      */
-    fun multiply(vector: Vector3f): Vector3f {
+    operator fun times(vector: Vector3f): Vector3f {
         val x = this.m00 * vector.x + this.m01 * vector.y + this.m02 * vector.z
         val y = this.m10 * vector.x + this.m11 * vector.y + this.m12 * vector.z
         val z = this.m20 * vector.x + this.m21 * vector.y + this.m22 * vector.z
@@ -154,7 +154,7 @@ class Matrix3f {
      *
      * @return Matrix product of this * other
      */
-    fun multiply(other: Matrix3f): Matrix3f {
+    operator fun times(other: Matrix3f): Matrix3f {
         val result = Matrix3f()
 
         result.m00 = this.m00 * other.m00 + this.m01 * other.m10 + this.m02 * other.m20
@@ -206,5 +206,6 @@ class Matrix3f {
         buffer.put(m02).put(m12).put(m22)
         buffer.flip()
     }
+
 
 }

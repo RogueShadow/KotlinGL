@@ -3,6 +3,7 @@ package net.granseal.kotlinGL.engine.renderer
 import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.math.Matrix4f
 import net.granseal.kotlinGL.engine.math.Vector3f
+import net.granseal.kotlinGL.engine.shaders.DefaultShader
 import net.granseal.kotlinGL.engine.shaders.Depth
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.opengl.GL33.*
@@ -10,7 +11,7 @@ import kotlin.properties.Delegates
 
 class Standard(var width: Int,var height: Int): Renderer {
     var clearColor = Vector3f(0.2f,0.3f,0.4f)
-    val shadowMapResolution = 2048
+    val shadowMapResolution = 2048 * 2
     lateinit var shadowMap: ShadowMap
     var renderPass = 0
 
@@ -50,7 +51,7 @@ class Standard(var width: Int,var height: Int): Renderer {
         var fboID: Int by Delegates.notNull()
         var texID: Int by Delegates.notNull()
 
-        val shader = Depth(Matrix4f())
+        val shader = Depth()
 
         fun generate() {
             fboID = BufferManager.genFrameBuffer()
@@ -79,19 +80,14 @@ class Standard(var width: Int,var height: Int): Renderer {
             glBindFramebuffer(GL_FRAMEBUFFER,fboID)
             glClear(GL_DEPTH_BUFFER_BIT)
             val near = 1f
-            val far = 150f
-            val lightProj = Matrix4f.orthographic(-20f,20f,-40f,20f,near,far)
-            //val lightProj = Matrix4f.perspective(90f,1f,near,far)
+            val far = 50f
+            val lightProj = Matrix4f.orthographic(-30f,30f,-30f,30f,near,far)
             val cam = Camera()
-            if (LightManager.sunLamp != null) {
-                cam.position(LightManager.sunPos.x,25f,LightManager.sunPos.z)
-                cam.lookAt(cam.pos + LightManager.sunLamp!!.direction)
-            }else{
-
-            }
+            cam.position(LightManager.sunPos.x,30f,LightManager.sunPos.z)
+            cam.lookAt(cam.pos + Vector3f(0.0001f,-1f,0.001f))
             val lightView = cam.view
             val lsm = lightProj * lightView
-            shader.lightSpaceMatrix = lsm
+            ShaderManager.setGlobalUniform("lightSpaceMatrix",lsm)
             glCullFace(GL_FRONT)
         }
 
@@ -101,8 +97,7 @@ class Standard(var width: Int,var height: Int): Renderer {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             //config shaders matrices
             glBindTexture(GL_TEXTURE_2D,texID)
-            ShaderManager.setAllMat4("lightSpaceMatrix",shader.lightSpaceMatrix)
-            ShaderManager.setAllInt("shadowMap",texID)
+            ShaderManager.setGlobalUniform("shadowMap",texID)
             glCullFace(GL_BACK)
         }
     }

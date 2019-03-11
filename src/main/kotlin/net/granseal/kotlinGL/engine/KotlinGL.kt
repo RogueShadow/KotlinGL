@@ -43,19 +43,19 @@ abstract class KotlinGL(var width: Int = 800,
         set(value){
             field = value
             camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
-            ShaderManager.setAllMat4("projection",camera.projection)
+            ShaderManager.setGlobalUniform("projection",camera.projection)
         }
     var nearZ = 0.1f
         set(value){
             field = value
             camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
-            ShaderManager.setAllMat4("projection",camera.projection)
+            ShaderManager.setGlobalUniform("projection",camera.projection)
         }
     var farZ = 100f
         set(value){
             field = value
             camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
-            ShaderManager.setAllMat4("projection",camera.projection)
+            ShaderManager.setGlobalUniform("projection",camera.projection)
         }
 
     var mouseGrabbed = true
@@ -174,7 +174,7 @@ abstract class KotlinGL(var width: Int = 800,
                     width = w
                     height = h
                     camera.setPerspective(fov,width.toFloat()/height.toFloat(),nearZ,farZ)
-                    ShaderManager.setAllMat4("projection",camera.projection)
+                    ShaderManager.setGlobalUniform("projection",camera.projection)
                 }
             }
         })
@@ -215,13 +215,13 @@ abstract class KotlinGL(var width: Int = 800,
         timer.restart()
         renderer.initialize()
         initialize()
-        ShaderManager.setAllMat4("projection",camera.projection)
+        ShaderManager.setGlobalUniform("projection",camera.projection)
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()
             update(timer.delta(), lastx - mousex,lasty - mousey)
             camera.updateCamera(lastx - mousex, lasty - mousey, timer.delta())
-            ShaderManager.setAllMat4("view",camera.view)
-            ShaderManager.setAllVec3("viewPos",camera.pos)
+            ShaderManager.setGlobalUniform("view",camera.view)
+            ShaderManager.setGlobalUniform("viewPos",camera.pos)
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer

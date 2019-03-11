@@ -465,6 +465,30 @@ class Matrix4f {
 
             return scaling
         }
+
+        fun lookAt(eye: Vector3f, center: Vector3f, up: Vector3f = Vector3f(0f,1f,0f)): Matrix4f {
+            val Dir = (center - eye).normalize()
+            val Right = (Dir cross up).normalize()
+            val Up = (Right cross Dir)
+            var m = Matrix4f()
+            m.m00 = Right.x
+            m.m10 = Right.y
+            m.m20 = Right.z
+            //m.m30 = -(Right dot eye)
+            m.m01 = Up.x
+            m.m11 = Up.y
+            m.m21 = Up.z
+            //m.m31 = -(Up dot eye)
+            m.m02 = -Dir.x
+            m.m12 = -Dir.y
+            m.m22 = -Dir.z
+            //m.m32 = -(Dir dot eye)
+            m.m03 = 0f
+            m.m13 = 0f
+            m.m23 = 0f
+            m.m33 = 1.0f
+            return m
+        }
     }
 
     override fun toString(): String {

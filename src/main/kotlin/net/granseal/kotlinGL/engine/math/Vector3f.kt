@@ -193,6 +193,15 @@ class Vector3f {
         buffer.flip()
     }
 
+    infix fun dyadic(other: Vector3f): Matrix3f {
+        val m = Matrix3f(
+            Vector3f(this.x * other.x,this.x  * other.y, this.x * other.z),
+            Vector3f(this.y * other.x, this.y * other.y, this.y * other.z),
+            Vector3f(this.z * other.x, this.z * other.y, this.z * other.z)
+        )
+        return m
+    }
+
     override fun toString(): String {
         return "Vector3f($x,$y,$z)"
     }

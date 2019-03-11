@@ -28,7 +28,7 @@ object LightManager{
             .forEach{
                 it.value.update(it.index)
             }
-        ShaderManager.setAllInt("engine_number_of_lights",if (lights.size <= MAX_LIGHTS) lights.size else MAX_LIGHTS)
+        ShaderManager.setGlobalUniform("engine_number_of_lights",if (lights.size <= MAX_LIGHTS) lights.size else MAX_LIGHTS)
     }
 
     val lights = mutableListOf<Light>()

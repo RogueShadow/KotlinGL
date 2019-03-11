@@ -9,37 +9,44 @@ import org.lwjgl.opengl.GL33.*
 import java.io.File
 
 object ShaderManager {
-    private val shaders = mutableListOf<ShaderProgram>()
+    private val shaders = mutableListOf<ShaderInfo>()
 
     fun addShader(vertSrc: String, fragSrc: String): Int {
         val shader = ShaderProgram(vertSrc,fragSrc)
-        shaders += shader
+        shaders += ShaderInfo(shader,mutableListOf())
         println("New Shader: ${shader.javaClass.canonicalName} :: ${shader.id}")
         return shader.id
     }
 
     fun cleanUp(){
         shaders.forEach{
-            glDeleteProgram(it.id)
-            println("Deleting Shader: ${it.id}")
+            glDeleteProgram(it.shader.id)
+            println("Deleting Shader: ${it.shader.id}")
         }
         shaders.clear()
     }
-    fun getShader(id: Int) = shaders.first{it.id == id}
-    fun setAllVec3(name: String, value: Vector3f){
-        shaders.forEach {it.setVec3(name,value)}
-    }
-    fun setAllMat4(name: String, value: Matrix4f){
-        shaders.forEach {it.setMat4(name,value)}
-    }
-
-    fun setAllInt(name: String, i: Int) {
-        shaders.forEach{it.setInt(name,i)}
+    fun getShader(id: Int) = shaders.first{it.shader.id == id}.shader
+    fun listenForUniforms(uniforms: List<String>,id: Int){
+        shaders.single { it.shader.id == id }.uniforms.apply {
+            clear()
+            addAll(uniforms)
+        }
     }
 
-    fun setAllFloat(name: String, f: Float) {
-        shaders.forEach{it.setUniform1f(name,f)}
+    fun setGlobalUniform(name: String, value: Matrix4f){
+        shaders.filter{it.uniforms.contains(name)}.forEach{it.shader.setMat4(name,value)}
     }
+    fun setGlobalUniform(name: String, value: Vector3f){
+        shaders.filter{it.uniforms.contains(name)}.forEach{it.shader.setVec3(name,value)}
+    }
+    fun setGlobalUniform(name: String, value: Float){
+        shaders.filter{it.uniforms.contains(name)}.forEach{it.shader.setFloat(name,value)}
+    }
+    fun setGlobalUniform(name: String, value: Int){
+        shaders.filter{it.uniforms.contains(name)}.forEach{it.shader.setInt(name,value)}
+    }
+
+    data class ShaderInfo(val shader: ShaderProgram, val uniforms: MutableList<String>)
 }
 
 class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
@@ -79,6 +86,28 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
 
     companion object {
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "main.frag").readText())
+        init{
+            val uniforms = mutableListOf<String>()
+            (1..20).withIndex().forEach{
+                uniforms += "light[${it.index}].ambient"
+                uniforms += "light[${it.index}].diffuse"
+                uniforms += "light[${it.index}].specular"
+                uniforms += "light[${it.index}].constant"
+                uniforms += "light[${it.index}].linear"
+                uniforms += "light[${it.index}].quadratic"
+            }
+            uniforms += "sunlamp.direction"
+            uniforms += "sunlamp.ambient"
+            uniforms += "sunlamp.specular"
+            uniforms += "sunlamp.diffuse"
+            uniforms += "projection"
+            uniforms += "view"
+            uniforms += "viewPos"
+            uniforms += "engine_number_of_lights"
+            uniforms += "shadowMap"
+            uniforms += "lightSpaceMatrix"
+            ShaderManager.listenForUniforms(uniforms,shaderID)
+        }
     }
 }
 
@@ -91,6 +120,12 @@ class SolidColor(var color:Vector3f = Vector3f(1f,1f,1f)): Shader, ComponentImpl
     }
     companion object {
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "light.frag").readText())
+        init {
+            val uniforms = mutableListOf<String>()
+            uniforms += "projection"
+            uniforms += "view"
+            ShaderManager.listenForUniforms(uniforms, shaderID)
+        }
     }
 }
 
@@ -103,17 +138,25 @@ class Sprite(var texID: Int): Shader, ComponentImpl() {
     }
     companion object {
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "sprite.frag").readText())
+        init {
+            val uniforms = mutableListOf<String>()
+            uniforms += "projection"
+            uniforms += "view"
+            ShaderManager.listenForUniforms(uniforms, shaderID)
+        }
     }
 }
 
-class Depth(var lightSpaceMatrix: Matrix4f): Shader, ComponentImpl() {
+class Depth: Shader, ComponentImpl() {
     override fun use(transform: Matrix4f) {
         val shader = ShaderManager.getShader(shaderID)
         shader.setMat4("transform", transform)
-        shader.setMat4("lightSpaceMatrix", lightSpaceMatrix)
     }
     companion object {
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "depth.vert").readText(),File(Config.SHADER_DIR + "depth.frag").readText())
+        init{
+            ShaderManager.listenForUniforms(listOf("lightSpaceMatrix"),shaderID)
+        }
     }
 }
 
@@ -137,13 +180,13 @@ class PointLight : Light, ComponentImpl() {
     }
     override fun update(index: Int){
         with(ShaderManager){
-            setAllVec3("light[$index].position",position())
-            setAllVec3("light[$index].ambient",ambient)
-            setAllVec3("light[$index].diffuse",diffuse)
-            setAllVec3("light[$index].specular",specular)
-            setAllFloat("light[$index].constant",constant)
-            setAllFloat("light[$index].linear",linear)
-            setAllFloat("light[$index].quadratic",quadratic)
+            setGlobalUniform("light[$index].position" ,position())
+            setGlobalUniform("light[$index].ambient"  ,ambient)
+            setGlobalUniform("light[$index].diffuse"  ,diffuse)
+            setGlobalUniform("light[$index].specular" ,specular)
+            setGlobalUniform("light[$index].constant" ,constant)
+            setGlobalUniform("light[$index].linear"   ,linear)
+            setGlobalUniform("light[$index].quadratic",quadratic)
         }
     }
 }
@@ -151,29 +194,29 @@ class SunLamp {
     var direction: Vector3f = Vector3f(0.5f,-1f,0.5f)
         set(value){
             field = value
-            ShaderManager.setAllVec3("sunlamp.direction",value)
+            ShaderManager.setGlobalUniform("sunlamp.direction",value)
         }
     var ambient: Vector3f = Vector3f(0.05f,0.05f,0.05f)
         set(value){
             field = value
-            ShaderManager.setAllVec3("sunlamp.ambient",value)
+            ShaderManager.setGlobalUniform("sunlamp.ambient",value)
         }
     var diffuse: Vector3f = Vector3f(0.25f,0.25f,0.25f)
         set(value){
             field = value
-            ShaderManager.setAllVec3("sunlamp.diffuse",value)
+            ShaderManager.setGlobalUniform("sunlamp.diffuse",value)
         }
     var specular: Vector3f = Vector3f(0.25f,0.25f,0.25f)
         set(value){
             field = value
-            ShaderManager.setAllVec3("sunlamp.specular",value)
+            ShaderManager.setGlobalUniform("sunlamp.specular",value)
         }
     init {
         with(ShaderManager){
-            setAllVec3("sunlamp.direction",direction)
-            setAllVec3("sunlamp.ambient",ambient)
-            setAllVec3("sunlamp.diffuse",diffuse)
-            setAllVec3("sunlamp.specular",specular)
+            setGlobalUniform("sunlamp.direction",direction)
+            setGlobalUniform("sunlamp.ambient",ambient)
+            setGlobalUniform("sunlamp.diffuse",diffuse)
+            setGlobalUniform("sunlamp.specular",specular)
         }
     }
 }

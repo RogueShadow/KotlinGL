@@ -63,7 +63,7 @@ class Camera {
 
     fun lookAt(target: Vector3f) {
         val d = (pos - target).normalize()
-        val r = (up cross d ).normalize()
+        val r = (up cross d).normalize()
         val u = d cross r
         val viewMatrix = Matrix4f(
             Vector4f(r.x, r.y, r.z, 0f),
@@ -78,7 +78,7 @@ class Camera {
 
     fun forward(amount: Float){
         moveDelta += front scale (amount * cameraSpeed)
-        
+
     }
     fun backword(amount: Float){
         moveDelta -= front scale (amount * cameraSpeed)
