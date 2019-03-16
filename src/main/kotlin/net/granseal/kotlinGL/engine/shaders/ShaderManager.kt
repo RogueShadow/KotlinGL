@@ -88,13 +88,14 @@ class DefaultShader(var diffuse: Vector3f = Vector3f(0.7f,0.5f,0.2f),
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "main.vert").readText(),File(Config.SHADER_DIR + "main.frag").readText())
         init{
             val uniforms = mutableListOf<String>()
-            (1..20).withIndex().forEach{
-                uniforms += "light[${it.index}].ambient"
-                uniforms += "light[${it.index}].diffuse"
-                uniforms += "light[${it.index}].specular"
-                uniforms += "light[${it.index}].constant"
-                uniforms += "light[${it.index}].linear"
-                uniforms += "light[${it.index}].quadratic"
+            (0..20).forEach{
+                uniforms += "light[$it].position"
+                uniforms += "light[$it].ambient"
+                uniforms += "light[$it].diffuse"
+                uniforms += "light[$it].specular"
+                uniforms += "light[$it].constant"
+                uniforms += "light[$it].linear"
+                uniforms += "light[$it].quadratic"
             }
             uniforms += "sunlamp.direction"
             uniforms += "sunlamp.ambient"

@@ -1,9 +1,5 @@
 package net.granseal.kotlinGL.engine
 
-import kool.toBuffer
-import kool.toFloatBuffer
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL33.*
 
 object BufferManager {
@@ -97,7 +93,7 @@ object BufferManager {
             //glBufferSubData(GL_ARRAY_BUFFER,0,mesh.getCombinedFloatArray())
             val buf = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
             buf?.clear()
-            buf?.put(mesh.getCombinedFloatArray().toBuffer())
+            buf?.put(mesh.getCombinedFloatArray().toByteBuffer())
             glUnmapBuffer(GL_ARRAY_BUFFER)
         }else{
             glBufferData(GL_ARRAY_BUFFER,mesh.getCombinedFloatArray(), GL_DYNAMIC_DRAW)

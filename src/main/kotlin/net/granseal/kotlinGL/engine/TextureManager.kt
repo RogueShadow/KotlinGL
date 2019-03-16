@@ -69,7 +69,7 @@ object TextureManager{
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer.flip())
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         //glGenerateMipmap(GL_TEXTURE_2D)
         texids += texID
         println("Loaded Texture: ID: $texID BufferedImage: $image ${image.width}x${image.height}")
@@ -87,9 +87,9 @@ object TextureManager{
         val pixels = IntArray(image.width * image.height)
         image.getRGB(0,0,image.width,image.height,pixels,0,image.width)
         val buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
-        for (y in 0 until image.width){
-            for (x in 0 until image.height){
-                val pixel = pixels[(y) * image.width + x]
+        for (y in 0 until image.height){
+            for (x in 0 until image.width){
+                val pixel = pixels[(y) * image.width + (image.width - 1 - x)]
                 buffer.put(((pixel.shr(16)) and 0xFF).toByte())
                 buffer.put(((pixel.shr(8) ) and 0xFF).toByte())
                 buffer.put(( pixel and 0xFF).toByte())

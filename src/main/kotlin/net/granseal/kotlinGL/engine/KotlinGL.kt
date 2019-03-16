@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil.NULL
+import java.nio.ByteBuffer
 
 object Config {
     const val SHADER_DIR = "shaders/"
@@ -253,3 +254,8 @@ abstract class KotlinGL(var width: Int = 800,
     fun setTitle(title: String) = glfwSetWindowTitle(window,title)
 }
 
+fun FloatArray.toByteBuffer(): ByteBuffer {
+    val buffer = ByteBuffer.allocateDirect(this.size * java.lang.Float.BYTES)
+    this.forEach { buffer.putFloat(it) }
+    return buffer
+}

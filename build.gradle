@@ -1,12 +1,15 @@
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.11'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.21'
 }
 
 ext.lwjglVersion = "3.2.1"
 ext.lwjglNatives = "natives-windows"
 
+sourceSets {
+    main.kotlin.srcDirs += 'src\\main\\kotlin'
+}
 
 group 'granseal'
 version '1.0-SNAPSHOT'
@@ -50,6 +53,7 @@ dependencies {
     compile 'com.hackoeur:jglm:1.0.0'
     compile 'com.github.kotlin-graphics:imgui:-SNAPSHOT'
     compile 'cz.advel.jbullet:jbullet:20101010-1'
+    compile files('libs/KotlinMathLib.jar')
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:
