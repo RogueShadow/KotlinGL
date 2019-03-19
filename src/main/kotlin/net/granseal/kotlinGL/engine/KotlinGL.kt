@@ -4,6 +4,7 @@
  */
 package net.granseal.kotlinGL.engine
 
+import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.renderer.Standard
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
@@ -43,19 +44,19 @@ abstract class KotlinGL(var width: Int = 800,
     var fov = 45f
         set(value){
             field = value
-            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            camera.projection = perspective(fov,width.toFloat()/height,nearZ,farZ)
             ShaderManager.setGlobalUniform("projection",camera.projection)
         }
     var nearZ = 0.1f
         set(value){
             field = value
-            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            camera.projection = perspective(fov,width.toFloat()/height,nearZ,farZ)
             ShaderManager.setGlobalUniform("projection",camera.projection)
         }
     var farZ = 100f
         set(value){
             field = value
-            camera.setPerspective(fov,width.toFloat()/height,nearZ,farZ)
+            camera.projection = perspective(fov,width.toFloat()/height,nearZ,farZ)
             ShaderManager.setGlobalUniform("projection",camera.projection)
         }
 
@@ -174,7 +175,7 @@ abstract class KotlinGL(var width: Int = 800,
                 if (w > 0 && h > 0) {
                     width = w
                     height = h
-                    camera.setPerspective(fov,width.toFloat()/height.toFloat(),nearZ,farZ)
+                    camera.projection = perspective(fov,width.toFloat()/height.toFloat(),nearZ,farZ)
                     ShaderManager.setGlobalUniform("projection",camera.projection)
                 }
             }
@@ -220,9 +221,9 @@ abstract class KotlinGL(var width: Int = 800,
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()
             update(timer.delta(), lastx - mousex,lasty - mousey)
-            camera.updateCamera(lastx - mousex, lasty - mousey, timer.delta())
             ShaderManager.setGlobalUniform("view",camera.view)
             ShaderManager.setGlobalUniform("viewPos",camera.pos)
+            ShaderManager.setGlobalUniform("elapsedTime",timer.timeElapsed())
             lastx = mousex
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer

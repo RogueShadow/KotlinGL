@@ -1,7 +1,7 @@
 package net.granseal.kotlinGL.engine.shaders
 
-import net.granseal.kotlinGL.engine.math.Matrix4f
-import net.granseal.kotlinGL.engine.math.Vector3f
+import com.curiouscreature.kotlin.math.Float3
+import com.curiouscreature.kotlin.math.Mat4
 import org.lwjgl.opengl.GL33.*
 
 class ShaderProgram(vert: String, frag: String){
@@ -42,10 +42,10 @@ class ShaderProgram(vert: String, frag: String){
         use()
         glUniform1f(glGetUniformLocation(id, name), value)
     }
-    fun setVec3(name: String, vec: Vector3f) = setUniform3f(name,vec.x,vec.y,vec.z)
-    fun setMat4(name: String, value: Matrix4f){
+    fun setVec3(name: String, vec: Float3) = setUniform3f(name,vec.x,vec.y,vec.z)
+    fun setMat4(name: String, value: Mat4){
         use()
-        glUniformMatrix4fv(glGetUniformLocation(id,name),false,value.toBuffer())
+        glUniformMatrix4fv(glGetUniformLocation(id,name),true,value.toFloatArray())
     }
 
     fun setUniform3f(name: String, v1: Float, v2: Float, v3: Float) {

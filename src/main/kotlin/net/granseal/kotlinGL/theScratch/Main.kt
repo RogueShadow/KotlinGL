@@ -1,7 +1,7 @@
 package net.granseal.kotlinGL.theScratch
 
+import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.*
-import net.granseal.kotlinGL.engine.math.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
@@ -46,7 +46,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         g2d.color = Color.green
         g2d.drawString("Hello World",5,30)
 
-        camera.setPerspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
+        camera.projection = perspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
 
         flatCube = MeshManager.loadObj("flatcube.obj")
 
@@ -90,17 +90,17 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
         depth = Entity().addComponent(Sprite(renderer.shadowMap.texID))
             .addComponent(quad)
-            .apply { position = Vector3f(0f, 3f, 0f) }
+            .apply { position = Float3(0f, 3f, 0f) }
 
         entities.add(depth)
 
         entities.add(Entity().addComponent(MeshManager.loadObj("deca2.obj"))
-            .addComponent(DefaultShader(diffuse = Vector3f(0.5f,0.8f,0.3f)))
+            .addComponent(DefaultShader(diffuse = Float3(0.5f,0.8f,0.3f)))
             .addComponent(object: ComponentImpl(){
                 override fun update(delta: Float) {
                     parent.rotate(delta*75,0.5f,0.5f,0.5f)
                 }
-            }).apply { position = Vector3f(0f,8f,0f) })
+            }).apply { position = Float3(0f,8f,0f) })
 
 
         floor = Entity().addComponent(DefaultShader(
@@ -108,7 +108,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             shininess = 0.001f
                 ))
                         .addComponent(MeshManager.loadObj("terrain.obj"))
-            .apply { position = Vector3f(-20f,-71f,-20f);scale = 70f }
+            .apply { position = Float3(-20f,-71f,-20f);scale = 70f }
 
 
         (1..5).forEach{
@@ -120,9 +120,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             p.diffuse.x = rand.nextFloat()
             p.diffuse.y = rand.nextFloat()
             p.diffuse.z = rand.nextFloat()
-            p.diffuse.normalize()
-            p.ambient = p.diffuse.scale(0.1f)
-            p.specular = p.diffuse.scale(0.1f)
+            p.diffuse = normalize(p.diffuse)*1.5f
+            p.ambient = p.diffuse * 0.1f
+            p.specular = p.diffuse * 0.1f
             p.linear = 0.25f
             e.addComponent(SolidColor(p.diffuse))
             e.addComponent(flatCube)
@@ -136,9 +136,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
                 }
             }).addComponent(object: ComponentImpl(){
                 val offset = rand.nextFloat()*0.0025f
-                val rot = Matrix3f(Vector3f(cos(offset),0f,sin(offset)),
-                Vector3f(0f,1f,0f),
-                Vector3f(-sin(offset),0f,cos(offset)))
+                val rot = Mat3(Float3(cos(offset),0f,sin(offset)),
+                    Float3(0f,1f,0f),
+                    Float3(-sin(offset),0f,cos(offset)))
 
                 override fun update(delta: Float) {
                     parent.position = rot * parent.position
@@ -178,7 +178,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
         if (action == 1) {
             if (key == "p"){
                 val lp = vecDraw.getLastPos()
-                vecDraw.extendLine(lp + Vector3f(-0.02f+rand.nextFloat()*0.01f,rand.nextFloat()*0.01f,-0.02f + rand.nextFloat()*0.01f))
+                vecDraw.extendLine(lp + Float3(-0.02f+rand.nextFloat()*0.01f,rand.nextFloat()*0.01f,-0.02f + rand.nextFloat()*0.01f))
                 vecDraw.update()
             }
             if (!moveBoxes) return
@@ -223,6 +223,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 //        val newP = vecDraw.getLastPos() + Vector3f(-0.05f + rand.nextFloat()*0.1f,-0.049f + rand.nextFloat()*0.1f,-0.05f + rand.nextFloat()*0.1f)
 //        vecDraw.extendLine(newP)
 //        vecDraw.update()
+        camera.updateCamera(deltax,deltay,delta)
         LightManager.calculateLightIndex(camera.pos)
     }
 
@@ -235,9 +236,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             mat2 = it.value.components().singleOrNull{it is Sprite} as Sprite?
             if (mat != null){
                 if (it.index == selected) {
-                    mat!!.tint = Vector3f(0.1f, 0.3f, 0.4f)
+                    mat!!.tint = Float3(0.1f, 0.3f, 0.4f)
                 } else {
-                    mat!!.tint = Vector3f(0f, 0f, 0f)
+                    mat!!.tint = Float3(0f, 0f, 0f)
                 }
             }
             if (mat2 == null)renderer.render(it.value)
@@ -267,15 +268,15 @@ class VectorDraw(){
         entity.addComponent(mesh).addComponent(SolidColor())
 
     }
-    fun addLine(end: Vector3f){
+    fun addLine(end: Float3){
         mesh.verts += floatArrayOf(0f,0f,0f)
         mesh.verts += floatArrayOf(end.x,end.y,end.z)
     }
-    fun addLine(start: Vector3f, end: Vector3f){
+    fun addLine(start: Float3, end: Float3){
         mesh.verts += floatArrayOf(start.x,start.y,start.z)
         mesh.verts += floatArrayOf(end.x,end.y,end.z)
     }
-    fun extendLine(end: Vector3f){
+    fun extendLine(end: Float3){
         mesh.verts += mesh.verts.takeLast(3)
         mesh.verts += floatArrayOf(end.x,end.y,end.z)
     }
@@ -283,9 +284,9 @@ class VectorDraw(){
         mesh.updateMesh(true)
         println(mesh.verts.size)
     }
-    fun getLastPos():Vector3f{
+    fun getLastPos():Float3{
         val vert = mesh.verts.takeLast(3)
-        return Vector3f(vert[0],vert[1],vert[2])
+        return Float3(vert[0],vert[1],vert[2])
     }
 }
 

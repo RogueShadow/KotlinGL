@@ -1,6 +1,6 @@
 package net.granseal.kotlinGL.engine
 
-import net.granseal.kotlinGL.engine.math.Vector3f
+import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.shaders.Light
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import net.granseal.kotlinGL.engine.shaders.SunLamp
@@ -9,7 +9,7 @@ object LightManager{
     const val MAX_LIGHTS = 16
 
     var sunLamp: SunLamp? = null
-    var sunPos: Vector3f = Vector3f()
+    var sunPos: Float3 = Float3()
 
     fun createSunLamp(): SunLamp{
         sunLamp = SunLamp()
@@ -20,9 +20,9 @@ object LightManager{
         lights += pointLight
     }
 
-    fun calculateLightIndex(pos: Vector3f){
+    fun calculateLightIndex(pos: Float3){
         sunPos = pos
-        lights.sortBy{(it.position() - pos).length()}
+        lights.sortBy{length((it.position() - pos))}
         lights.withIndex()
             .take(MAX_LIGHTS)
             .forEach{

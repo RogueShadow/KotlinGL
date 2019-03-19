@@ -53,7 +53,7 @@ dependencies {
     compile 'com.hackoeur:jglm:1.0.0'
     compile 'com.github.kotlin-graphics:imgui:-SNAPSHOT'
     compile 'cz.advel.jbullet:jbullet:20101010-1'
-    compile files('libs/KotlinMathLib.jar')
+    //compile files('libs/KotlinMathLib.jar')
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:

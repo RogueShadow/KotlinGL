@@ -1,10 +1,8 @@
 package net.granseal.kotlinGL.engine
 
-import kool.toBuffer
-import net.granseal.kotlinGL.engine.math.Vector2f
-import net.granseal.kotlinGL.engine.math.Vector3f
+import com.curiouscreature.kotlin.math.Float2
+import com.curiouscreature.kotlin.math.Float3
 import java.io.File
-import java.nio.FloatBuffer
 
 
 class Mesh(): ComponentImpl() {
@@ -63,9 +61,9 @@ object MeshManager {
 
     fun loadObj(file: String): Mesh {
         val obj = File(file).readLines()
-        val vertRef = mutableListOf<Vector3f>()
-        val texRef = mutableListOf<Vector2f>()
-        val normalRef = mutableListOf<Vector3f>()
+        val vertRef = mutableListOf<Float3>()
+        val texRef = mutableListOf<Float2>()
+        val normalRef = mutableListOf<Float3>()
         val iRef = mutableListOf<Int>()
         val vertActual = mutableListOf<Float>()
         val texActual = mutableListOf<Float>()
@@ -76,17 +74,17 @@ object MeshManager {
             if (line[0] == "v") {
                 var s = 1
                 while (line[s].isEmpty())s++
-                vertRef += Vector3f(
+                vertRef += Float3(
                     line[s+0].toFloat(),
                     line[s+1].toFloat(),
                     line[s+2].toFloat()
                 )
             }
             if (line[0] == "vt") {
-                texRef += Vector2f(line[1].toFloat(), line[2].toFloat())
+                texRef += Float2(line[1].toFloat(), line[2].toFloat())
             }
             if (line[0] == "vn") {
-                normalRef += Vector3f(
+                normalRef += Float3(
                     line[1].toFloat(),
                     line[2].toFloat(),
                     line[3].toFloat()

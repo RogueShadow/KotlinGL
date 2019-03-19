@@ -1,32 +1,27 @@
 package net.granseal.kotlinGL.engine
 
-import net.granseal.kotlinGL.engine.math.Matrix4f
-import net.granseal.kotlinGL.engine.math.Vector3f
+import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.shaders.Shader
 
 open class Entity{
     private val components = mutableSetOf<Component>()
-    var position = Vector3f()
+    var position = Float3()
     var scale = 1f
+    private var rotationMatrix = Mat4.identity()
 
     fun components():Set<Component>{
         return components.toSet()
     }
-    fun entityMatrix(): Matrix4f {
-        return Matrix4f.translate(
-            position.x,
-            position.y,
-            position.z
-        ) * rotationMatrix * Matrix4f.scale(scale, scale, scale)
+    fun entityMatrix(): Mat4 {
+        return translation(position) * rotationMatrix * scale(Float3(scale, scale, scale))
     }
 
-    private var rotationMatrix = Matrix4f.rotate(0f, 0f, 0f, 1f)
 
     fun rotate(angle: Float, x: Float, y: Float, z: Float) {
-        rotationMatrix *= Matrix4f.rotate(angle, x, y, z)
+        rotationMatrix *= rotation(Float3(x, y, z), angle)
     }
     fun rotation(angle: Float, x: Float, y: Float, z: Float){
-        rotationMatrix = Matrix4f.rotate(angle, x, y, z)
+        rotationMatrix = rotation(Float3(x,y,z),angle)
     }
     fun move(x: Float, y: Float, z: Float){
         position.x += x
