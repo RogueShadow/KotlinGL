@@ -1,0 +1,35 @@
+            // in DefaultShader
+            uniforms += "lightSpaceMatrix"
+            ShaderManager.listenForUniforms(uniforms,shaderID)
+
+            // in Standard renderer start block
+            val pos = Float3(LightManager.sunPos.x,30f,LightManager.sunPos.z)
+            val lsm =
+                ortho(-30f,30f,-30f,30f,1f,50f) *
+                lookTowards(pos ,Float3(0.1f,-1f,0.1f),Float3(0f,1f,0f))
+
+            ShaderManager.setGlobalUniform("lightSpaceMatrix",lsm)
+
+
+            // in ShaderManager
+
+            fun setGlobalUniform(name: String, value: Mat4){
+                shaders.filter{it.uniforms.contains(name)}.forEach{it.shader.setMat4(name,value)}
+            }
+
+            // in vert shader
+            uniform mat4 lightSpaceMatrix;
+
+            FragPosLightSpace = lightSpaceMatrix * vec4(FragPos,1);
+
+            out vec4 FragPosLightSpace;
+
+            // in frag shader
+
+            in vec4 FragPosLightSpace;
+
+            float ShadowCalculation(vec4 fragPosLightSpace){
+                // perform perspective divide
+                vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+                float closestDepth = texture(shadowMap, projCoords.xy).r;
+
