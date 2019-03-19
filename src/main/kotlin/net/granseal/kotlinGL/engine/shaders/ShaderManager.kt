@@ -156,7 +156,7 @@ class Depth: Shader, ComponentImpl() {
     companion object {
         val shaderID = ShaderManager.addShader(File(Config.SHADER_DIR + "depth.vert").readText(),File(Config.SHADER_DIR + "depth.frag").readText())
         init{
-            ShaderManager.listenForUniforms(listOf("lightSpaceMatrix","lightView","lightProj"),shaderID)
+            ShaderManager.listenForUniforms(listOf("lightSpaceMatrix"),shaderID)
         }
     }
 }

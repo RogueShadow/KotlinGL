@@ -1,7 +1,5 @@
 package net.granseal.kotlinGL.theScratch
 
-<<<<<<< Updated upstream
-=======
 import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
@@ -69,4 +67,3 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
     }
 
 }
->>>>>>> Stashed changes

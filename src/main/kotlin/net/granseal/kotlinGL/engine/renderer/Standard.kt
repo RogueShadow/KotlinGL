@@ -78,19 +78,11 @@ class Standard(var width: Int,var height: Int): Renderer {
             glBindFramebuffer(GL_FRAMEBUFFER,fboID)
             glClear(GL_DEPTH_BUFFER_BIT)
 
+            val proj = ortho(-30f,30f,-30f,30f,1f,50f)
+            val front = Float3(0.1f,1f,0.1f)
             val pos = Float3(LightManager.sunPos.x,30f,LightManager.sunPos.z)
-            val lsm =
-                ortho(-30f,30f,-30f,30f,1f,50f) *
-                inverse(lookAt(pos ,pos + Float3(0.4f,-30f,0.4f),Float3(0f,1f,0f)))
+            val lsm = proj * inverse(lookAt(pos ,pos + front,Float3(0f,1f,0f)))
 
-            val cam = Camera()
-            cam.pos = pos
-            cam.projection = ortho(-30f,30f,-30f,30f,1f,50f)
-            cam.front = Float3(0.1f,-30f,0.1f)
-            cam.updateCameraVectors()
-
-            ShaderManager.setGlobalUniform("lightProj",cam.projection)
-            ShaderManager.setGlobalUniform("lightView",inverse(cam.view))
             ShaderManager.setGlobalUniform("lightSpaceMatrix",lsm)
             glCullFace(GL_FRONT)
         }

@@ -25,20 +25,21 @@ class Camera {
         if (pitch > pitchMax)pitch = pitchMax
         if (pitch < -pitchMax)pitch = -pitchMax
 
-        updateCameraVectors()
-    }
-
-    fun updateCameraVectors(){
         front.x = cos(radians(yaw.toFloat())) * cos(radians(pitch.toFloat()))
         front.y = sin(radians(pitch.toFloat()))
         front.z = sin(radians(yaw.toFloat())) * cos(radians(pitch.toFloat()))
         front = normalize(front)
 
+        updateCameraVectors()
+    }
+
+    fun updateCameraVectors(){
+
         right = normalize(front x worldUp)
         up    = right x front
 
         view = lookAt(pos,pos+front,up)
-        view = inverse(view)
+        view = inverse(view) //Why must I do this?!
     }
 
     fun forward(amount: Float){
