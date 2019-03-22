@@ -11,9 +11,13 @@ import org.lwjgl.opengl.GL33.*
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
+import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.google.gson.reflect.TypeToken
+
+
 
 fun main(args: Array<String>) {
     val main = Main(1600, 900, "KotlinGL", false)
@@ -36,21 +40,33 @@ class SaveFile {
     var objects = mutableListOf<KglObject>()
 }
 
+fun getMesh(name: String) = Data.getMesh(name)
+fun getTex(name: String) = Data.getTex(name)
+fun loadResourceFile(f: String) = Data.loadResourceFile(f)
 
 object Data {
+    val gson = GsonBuilder().setPrettyPrinting().create()
     val meshes = mutableMapOf<String,Mesh>()
     val textures = mutableMapOf<String,Int>()
 
-    fun loadMesh(r: KglResource){
-        if (r.type != "mesh")throw Exception("Not a mesh resource.")
-        meshes.putIfAbsent(r.name,MeshManager.loadObj(r.value))
+    fun loadMesh(name: String, value: String){
+        meshes.putIfAbsent(name,MeshManager.loadObj(value))
     }
-
-    fun loadTexture(r: KglResource){
-        if (r.type != "texture")throw Exception("Not a texture resource")
-        textures.putIfAbsent(r.name,TextureManager.loadGLTexture(r.value))
+    fun loadResourceFile(f: String){
+        val collectionType = object : TypeToken<List<KglResource>>() {}.type
+        val resources = gson.fromJson<List<KglResource>>(File(f).readText(),collectionType)
+        resources.forEach { Data.loadResource(it) }
     }
-
+    fun loadResource(r: KglResource){
+        when (r.type){
+            "mesh"      -> loadMesh(r.name,r.value)
+            "texture"   -> loadTexture(r.name,r.value)
+            else        -> throw Exception("${r.type}, is not a valid resource")
+        }
+    }
+    fun loadTexture(name: String, value: String){
+        textures.putIfAbsent(name,TextureManager.loadGLTexture(value))
+    }
     fun getMesh(name: String): Mesh {
         val m = meshes[name]
         if (m != null)return m else throw Exception("No Mesh of that name")
@@ -91,15 +107,9 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     var selected = 0
     var moveBoxes = false
     val rand = Random(System.nanoTime())
-    val gson = GsonBuilder().setPrettyPrinting().create()
 
-    lateinit var bi: DynamicTexture
-    lateinit var g2d: Graphics2D
-
-    lateinit var floor: Entity
-    lateinit var depth: Entity
     lateinit var flatCube: Mesh
-    var vecDraw = VectorDraw()
+
 
     fun rColor() = Float3(rand.nextFloat(),rand.nextFloat(),rand.nextFloat())
 
@@ -119,24 +129,14 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
     }
 
     override fun initialize() {
-        Data.loadTexture(KglResource("texture","container_diff","container2.png"))
-        Data.loadTexture(KglResource("texture","container_spec","container2_specular.png"))
-        Data.loadTexture(KglResource("texture","ground","GroundForest003_COL_VAR1_3K.jpg"))
-        Data.loadMesh(KglResource("mesh","sphere","sphere.obj"))
-        Data.loadMesh(KglResource("mesh","box","flatcube.obj"))
-        Data.loadMesh(KglResource("mesh","deca","deca2.obj"))
-        Data.loadMesh(KglResource("mesh","terrain","terrain2.obj"))
-        Data.loadMesh(KglResource("mesh","dragon","dragon.obj"))
+        loadResourceFile("resources.kgl")
 
         val g = SaveFile()
         with (g.objects){
             add(KglObject("Box", color = rColor()))
             add(KglObject("Sphere", color = rColor()))
         }
-        val j = gson.toJson(g)
-        println(j)
 
-        vecDraw.init()
 
         camera.projection = perspective(45f, width.toFloat() / height.toFloat(), 0.1f, 200f)
 
@@ -288,11 +288,6 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
     //key is case sensative, only normal typing keys, action 1 - pressed, 2 - held (repeats), 0 - released
     override fun keyEvent(key: String, action: Int) {
         if (action == 1) {
-            if (key == "p"){
-                val lp = vecDraw.getLastPos()
-                vecDraw.extendLine(lp + Float3(-0.02f+rand.nextFloat()*0.01f,rand.nextFloat()*0.01f,-0.02f + rand.nextFloat()*0.01f))
-                vecDraw.update()
-            }
             if (!moveBoxes) return
             when (key) {
                 "q" -> {
@@ -317,7 +312,6 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
 
-        vecDraw.entity.update(delta)
         if (keyPressed(GLFW_KEY_LEFT_SHIFT)) {
             moveBoxes = true
         } else {
@@ -361,7 +355,6 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
                 renderer.render(it)
             }
         }
-        renderer.render(vecDraw.entity)
     }
 }
 

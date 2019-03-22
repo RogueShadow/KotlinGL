@@ -1,0 +1,42 @@
+[
+  {
+    "type": "texture",
+    "name": "container_diff",
+    "value": "container2.png"
+  },
+  {
+    "type": "texture",
+    "name": "container_spec",
+    "value": "container2_specular.png"
+  },
+  {
+    "type": "texture",
+    "name": "ground",
+    "value": "GroundForest003_COL_VAR1_3K.jpg"
+  },
+  {
+    "type": "mesh",
+    "name": "sphere",
+    "value": "sphere.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "box",
+    "value": "flatcube.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "deca",
+    "value": "deca2.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "terrain",
+    "value": "terrain2.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "dragon",
+    "value": "dragon.obj"
+  }
+]
