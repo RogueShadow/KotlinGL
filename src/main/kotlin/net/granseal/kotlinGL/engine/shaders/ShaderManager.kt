@@ -49,11 +49,12 @@ object ShaderManager {
 }
 
 class DefaultShader(var diffuse: Float3 = Float3(0.7f,0.5f,0.2f),
-                    var specular: Float3 = Float3(.5f, .5f, .5f),
+                    var specular: Float3 = Float3(1f,1f,1f),
                     var shininess: Float = 32f,
                     var tint: Float3 = Float3(0f,0f,0f),
                     var diffTexID: Int = -1,
-                    var specTexID: Int = -1): Shader, ComponentImpl() {
+                    var specTexID: Int = -1,
+                    var castShadows: Boolean = true): Shader, ComponentImpl() {
 
 
     override fun use(transform: Mat4) {
@@ -192,7 +193,7 @@ class PointLight : Light, ComponentImpl() {
     }
 }
 class SunLamp {
-    var direction: Float3 = Float3(0.5f,-1f,0.5f)
+    var direction: Float3 = Float3(0.25f,-1f,0.25f)
         set(value){
             field = value
             ShaderManager.setGlobalUniform("sunlamp.direction",value)
@@ -202,12 +203,12 @@ class SunLamp {
             field = value
             ShaderManager.setGlobalUniform("sunlamp.ambient",value)
         }
-    var diffuse: Float3 = Float3(0.25f,0.25f,0.25f)
+    var diffuse: Float3 = Float3(1f,1f,1f)
         set(value){
             field = value
             ShaderManager.setGlobalUniform("sunlamp.diffuse",value)
         }
-    var specular: Float3 = Float3(0.25f,0.25f,0.25f)
+    var specular: Float3 = Float3(1f,1f,1f)
         set(value){
             field = value
             ShaderManager.setGlobalUniform("sunlamp.specular",value)

@@ -49,7 +49,8 @@ float ShadowCalculation(vec4 fragPosLightSpace){
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
 
-    float bias = max(0.001 * (1.0 - dot(normalize(Normal), sunlamp.direction)), 0.005);
+    vec3 sunDir = normalize(-sunlamp.direction);
+    float bias = max(0.001 * (1.0 - dot(normalize(Normal), sunDir)), 0.005);
     float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     return shadow;
@@ -61,6 +62,9 @@ void main()
 {
     if (material.use_diff_tex == 1){
         diffuseColor = vec3(texture(material.diff_tex,texCoord)) + material.tint;
+        if (material.use_spec_tex != 1){
+            specularColor = diffuseColor;
+        }
     }
     if (material.use_spec_tex == 1){
         specularColor = vec3(texture(material.spec_tex,texCoord));

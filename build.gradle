@@ -54,6 +54,7 @@ dependencies {
     compile 'com.github.kotlin-graphics:imgui:-SNAPSHOT'
     compile 'cz.advel.jbullet:jbullet:20101010-1'
     //compile files('libs/KotlinMathLib.jar')
+    implementation 'com.google.code.gson:gson:2.8.5'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:

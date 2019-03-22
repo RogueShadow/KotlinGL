@@ -1,6 +1,8 @@
 package net.granseal.kotlinGL.theScratch
 
 import com.curiouscreature.kotlin.math.*
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
@@ -18,38 +20,48 @@ fun main(args: Array<String>) {
     main.run()
 }
 
-class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
-
-    var entities: MutableList<Entity> = mutableListOf()
-    var selected = 0
-    var moveBoxes = false
-    val rand = Random(System.nanoTime())
-
-    lateinit var bi: DynamicTexture
-    lateinit var g2d: Graphics2D
-
-    lateinit var floor: Entity
-    lateinit var depth: Entity
-    lateinit var flatCube: Mesh
-    var vecDraw = VectorDraw()
-
-    override fun initialize() {
-
+data class KglObject(
+    val type: String,
+    val position: Float3 = Float3(0f,0f,0f),
+    val scale: Float = 1f,
+    val color: Float3 = Float3(1f,1f,1f)
+)
+data class KglResource(
+    val type: String,
+    val name: String,
+    val value: String
+)
+class SaveFile {
+    var resources = mutableListOf<KglResource>()
+    var objects = mutableListOf<KglObject>()
+}
 
 
-        bi = DynamicTexture(256,256)
-        g2d = bi.createGraphics()
+object Data {
+    val meshes = mutableMapOf<String,Mesh>()
+    val textures = mutableMapOf<String,Int>()
 
-        vecDraw.init()
-        g2d.color = Color.DARK_GRAY
-        g2d.fillRect(0,0,bi.width,bi.height)
-        g2d.color = Color.green
-        g2d.drawString("Hello World",5,30)
+    fun loadMesh(r: KglResource){
+        if (r.type != "mesh")throw Exception("Not a mesh resource.")
+        meshes.putIfAbsent(r.name,MeshManager.loadObj(r.value))
+    }
 
-        camera.projection = perspective(45f, width.toFloat() / height.toFloat(), 0.1f, 100f)
+    fun loadTexture(r: KglResource){
+        if (r.type != "texture")throw Exception("Not a texture resource")
+        textures.putIfAbsent(r.name,TextureManager.loadGLTexture(r.value))
+    }
 
-        flatCube = MeshManager.loadObj("flatcube.obj")
+    fun getMesh(name: String): Mesh {
+        val m = meshes[name]
+        if (m != null)return m else throw Exception("No Mesh of that name")
+    }
 
+    fun getTex(name: String): Int {
+        val id = textures[name]
+        if (id != null)return id else throw Exception("No Texture by that name loaded")
+    }
+
+    init {
         val quad = Mesh()
         quad.verts = floatArrayOf(
             -1.0f,-1.0f,0.0f,
@@ -70,59 +82,127 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             0f,1f
         )
         quad.type = GL_TRIANGLE_FAN
+        meshes.putIfAbsent("quad",quad)
+    }
+}
 
-//        val points = Mesh()
-//        (1..250).forEach{
-//            points.verts += -50 + rand.nextFloat() * 100
-//            points.verts += -50 + rand.nextFloat() * 100
-//            points.verts += -50 + rand.nextFloat() * 100
-//        }
-//        points.type = GL_LINES
-//
-//        entities.add(Entity().addComponent(points)
-//                             .addComponent(SolidColor())
-//                             .addComponent(object: ComponentImpl(){
-//
-//            override fun update(delta: Float) {
-//                parent.rotate(delta*15f,0.5f,1f,-0.25f)
-//            }
-//        }))
+class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
+    var entities: MutableList<Entity> = mutableListOf()
+    var selected = 0
+    var moveBoxes = false
+    val rand = Random(System.nanoTime())
+    val gson = GsonBuilder().setPrettyPrinting().create()
 
-        depth = Entity().addComponent(Sprite(renderer.shadowMap.texID))
-            .addComponent(quad)
-            .apply { position = Float3(0f, 3f, 0f) }
+    lateinit var bi: DynamicTexture
+    lateinit var g2d: Graphics2D
 
-        entities.add(depth)
+    lateinit var floor: Entity
+    lateinit var depth: Entity
+    lateinit var flatCube: Mesh
+    var vecDraw = VectorDraw()
 
-        entities.add(Entity().addComponent(MeshManager.loadObj("deca2.obj"))
-            .addComponent(DefaultShader(diffuse = Float3(0.5f,0.8f,0.3f)))
-            .addComponent(object: ComponentImpl(){
+    fun rColor() = Float3(rand.nextFloat(),rand.nextFloat(),rand.nextFloat())
+
+    fun loadSaveFile(g: SaveFile): List<Entity> {
+        val list = mutableListOf<Entity>()
+        g.objects.forEach {
+            val e = Entity()
+            when (it.type){
+                "Box" -> e.addComponent(Data.getMesh("box"))
+            }
+            e.position = it.position
+            e.scale = it.scale
+            e.addComponent(SolidColor(it.color))
+            list += e
+        }
+        return list
+    }
+
+    override fun initialize() {
+        Data.loadTexture(KglResource("texture","container_diff","container2.png"))
+        Data.loadTexture(KglResource("texture","container_spec","container2_specular.png"))
+        Data.loadTexture(KglResource("texture","ground","GroundForest003_COL_VAR1_3K.jpg"))
+        Data.loadMesh(KglResource("mesh","sphere","sphere.obj"))
+        Data.loadMesh(KglResource("mesh","box","flatcube.obj"))
+        Data.loadMesh(KglResource("mesh","deca","deca2.obj"))
+        Data.loadMesh(KglResource("mesh","terrain","terrain2.obj"))
+        Data.loadMesh(KglResource("mesh","dragon","dragon.obj"))
+
+        val g = SaveFile()
+        with (g.objects){
+            add(KglObject("Box", color = rColor()))
+            add(KglObject("Sphere", color = rColor()))
+        }
+        val j = gson.toJson(g)
+        println(j)
+
+        vecDraw.init()
+
+        camera.projection = perspective(45f, width.toFloat() / height.toFloat(), 0.1f, 200f)
+
+        flatCube = Data.getMesh("box")
+
+
+
+/*
+val points = Mesh()
+(1..250).forEach{
+points.verts += -50 + rand.nextFloat() * 100
+points.verts += -50 + rand.nextFloat() * 100
+points.verts += -50 + rand.nextFloat() * 100
+}
+points.type = GL_LINES
+
+entities.add(Entity().apply {
+addComponent(points)
+addComponent(SolidColor())
+addComponent(object : ComponentImpl() {
+override fun update(delta: Float) {
+parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
+}
+})
+})
+*/
+
+        entities.add(Entity().apply{
+            addComponent(Sprite(renderer.shadowMap.texID))
+            addComponent(Data.getMesh("quad"))
+            position = Float3(0f, 3f, 0f)
+        })
+
+        entities.add(Entity().apply {
+            addComponent(Data.getMesh("deca"))
+            addComponent(DefaultShader(diffuse = Float3(0.5f,0.8f,0.3f) ))
+            position = Float3(0f,8f,0f)
+            scale = 0.5f
+            addComponent(object: ComponentImpl(){
                 override fun update(delta: Float) {
                     parent.rotate(delta*75,0.5f,0.5f,0.5f)
                 }
-            }).apply { position = Float3(0f,8f,0f) })
+            })
+        })
+
+        entities.add(Entity().apply {
+            addComponent(
+                DefaultShader(
+                    diffTexID = Data.getTex("ground"),
+                    shininess = 0.1f
+                )
+            )
+            addComponent(Data.getMesh("terrain"))
+            position = Float3(-40f, -101f, -40f)
+        })
 
 
-        floor = Entity().addComponent(DefaultShader(
-            diffTexID = TextureManager.loadGLTexture("GroundForest003_COL_VAR1_3K.jpg"),
-            shininess = 0.001f
-                ))
-                        .addComponent(MeshManager.loadObj("terrain.obj"))
-            .apply { position = Float3(-20f,-71f,-20f);scale = 70f }
-
-
-        (1..5).forEach{
+        repeat(10){
             val e = Entity()
             val p = PointLight()
             e.position.x = -20f + it*5 + rand.nextFloat()
-            e.position.z = rand.nextDouble(-20.0,20.0).toFloat()
-            e.position.y = rand.nextDouble(1.0,5.0).toFloat()
-            p.diffuse.x = rand.nextFloat()
-            p.diffuse.y = rand.nextFloat()
-            p.diffuse.z = rand.nextFloat()
-            p.diffuse = normalize(p.diffuse)*1.5f
+            e.position.z = rand.nextDouble(-80.0,80.0).toFloat()
+            e.position.y = rand.nextDouble(3.0,15.0).toFloat()
+            p.diffuse = Float3(1f,1f,1f)
             p.ambient = p.diffuse * 0.1f
-            p.specular = p.diffuse * 0.1f
+            p.specular = p.diffuse
             p.linear = 0.25f
             e.addComponent(SolidColor(p.diffuse))
             e.addComponent(flatCube)
@@ -130,11 +210,7 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
             e.scale =  0.2f
             entities.add(e)
             e.addComponent(object: ComponentImpl(){
-                val offset = rand.nextFloat()
-                override fun update(delta: Float) {
-                    parent.scale = 0.5f +  sin(offset + getTimePassed())
-                }
-            }).addComponent(object: ComponentImpl(){
+                val offsetS = rand.nextFloat()
                 val offset = rand.nextFloat()*0.0025f
                 val rot = Mat3(Float3(cos(offset),0f,sin(offset)),
                     Float3(0f,1f,0f),
@@ -142,25 +218,61 @@ class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinG
 
                 override fun update(delta: Float) {
                     parent.position = rot * parent.position
+                    parent.scale = 0.5f +  sin(offsetS + getTimePassed())
                 }
             })
         }
 
         LightManager.calculateLightIndex(camera.pos)
 
-        entities.add(floor)
+        entities.add(Entity().apply {
+            addComponent(DefaultShader())
+            addComponent(Data.getMesh("dragon"))
+            scale = 0.1f
+        })
 
-        entities.add(Entity().addComponent(DefaultShader()).addComponent(MeshManager.loadObj("dragon.obj"))
-            .apply { scale = 0.1f })
-        entities.add(Entity().addComponent(DefaultShader(diffTexID = TextureManager.loadBufferedImage(bi)))
-            .addComponent(flatCube).apply { position(2f, 1f, 2f) })
-        entities.add(Entity().addComponent(
-            DefaultShader(
-                diffTexID = TextureManager.loadGLTexture("container2.png"),
-                specTexID = TextureManager.loadGLTexture("container2_specular.png")
+        entities.add(Entity().apply{
+            addComponent(
+                DefaultShader(
+                    diffTexID = Data.getTex("container_diff"),
+                    specTexID = Data.getTex("container_spec")
+                )
             )
-        )
-            .addComponent(flatCube).apply { position(-2f, 1.5f, 0f) })
+            addComponent(Data.getMesh("box"))
+            position(-2f, 1.5f, 0f)
+        })
+
+        entities.add(Entity().apply {
+            addComponent(DefaultShader(Float3(0f,0f,0f)))
+            addComponent(Data.getMesh("box"))
+            move(5f,2f,2f)
+            scale = 0.75f
+        })
+        entities.last().addChild(Entity().apply {
+            addComponent(DefaultShader(Float3(1f,0f,0f)))
+            addComponent(Data.getMesh("box"))
+            move(0f,2f,0f)
+            rotate(45F,0f,0f,1f)
+            scale = 0.75f
+        }).addChild(Entity().apply {
+            addComponent(DefaultShader(Float3(0f,0f,0f)))
+            addComponent(Data.getMesh("box"))
+            move(0f,2f,0f)
+            rotate(45F,1f,0f,0f)
+            scale = 0.75f
+        }).addChild(Entity().apply {
+            addComponent(DefaultShader(Float3(1f,1f,0f)))
+            addComponent(Data.getMesh("box"))
+            rotate(45F,1f,0f,0f)
+            move(0f,2f,0f)
+            scale = 0.75f
+        }).addChild(Entity().apply {
+            addComponent(DefaultShader(Float3(0f,1f,1f)))
+            addComponent(Data.getMesh("box"))
+            move(0f,2f,0f)
+            rotate(45F,1f,0f,0f)
+            scale = 0.75f
+        })
 
 
         LightManager.createSunLamp()

@@ -3,7 +3,14 @@ package net.granseal.kotlinGL.engine
 import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.shaders.Shader
 
-open class Entity{
+open class Entity: Groupable, Drawable, Updatable {
+    override var parent: Groupable? = null
+    override var children = mutableListOf<Groupable>()
+    override fun addChild(g: Groupable): Groupable{
+        g.parent = this
+        children.add(g)
+        return g
+    }
     private val components = mutableSetOf<Component>()
     var position = Float3()
     var scale = 1f
@@ -12,10 +19,18 @@ open class Entity{
     fun components():Set<Component>{
         return components.toSet()
     }
-    fun entityMatrix(): Mat4 {
-        return translation(position) * rotationMatrix * scale(Float3(scale, scale, scale))
-    }
 
+    override fun shader(): Shader? {
+        return components().singleOrNull{it is Shader} as Shader?
+    }
+    override fun transform(): Mat4 {
+        val parent = parent
+        return if (parent is Drawable){
+            parent.transform() * (translation(position) * rotationMatrix * scale(Float3(scale,scale,scale)))
+        }else{
+            (translation(position) * rotationMatrix * scale(Float3(scale,scale,scale)))
+        }
+    }
 
     fun rotate(angle: Float, x: Float, y: Float, z: Float) {
         rotationMatrix *= rotation(Float3(x, y, z), angle)
@@ -34,18 +49,28 @@ open class Entity{
         position.z = z
     }
 
-    fun update(delta: Float){
+    override fun update(delta: Float){
         components.forEach{
             it.update(delta)
         }
+        children.forEach {
+            if (it is Updatable)it.update(delta)
+        }
     }
 
-    fun draw(shader: Shader? = components.singleOrNull{it is Shader} as Shader?){
-        if (shader == null)return
-        shader.use(entityMatrix())
+    override fun draw(shader: Shader?) {
+        if (shader == null) {
+            shader()?.use(transform())
+        }else {
+            shader.use(transform())
+        }
 
         components.forEach{
             it.draw()
+        }
+
+        children.forEach {
+            if (it is Drawable) it.draw(shader)
         }
     }
 
@@ -59,6 +84,19 @@ open class Entity{
 }
 
 
+interface Groupable {
+    var parent: Groupable?
+    var children: MutableList<Groupable>
+    fun addChild(g: Groupable): Groupable // return child
+}
+interface Drawable {
+    fun shader(): Shader?
+    fun draw(shader: Shader?)
+    fun transform(): Mat4
+}
+interface Updatable {
+    fun update(delta: Float)
+}
 
 interface Component{
     fun update(delta: Float)

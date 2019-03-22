@@ -2,6 +2,7 @@ package net.granseal.kotlinGL.engine.renderer
 
 import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.*
+import net.granseal.kotlinGL.engine.shaders.DefaultShader
 import net.granseal.kotlinGL.engine.shaders.Depth
 import net.granseal.kotlinGL.engine.shaders.ShaderManager
 import org.lwjgl.opengl.GL33.*
@@ -39,10 +40,12 @@ class Standard(var width: Int,var height: Int): Renderer {
         }
     }
     private fun renderDepthPass(e: Entity){
+        val shader = e.components().singleOrNull{it is DefaultShader}
+        if (shader != null && !(shader as DefaultShader).castShadows)return
         e.draw(shadowMap.shader)
     }
     private fun renderFinal(e: Entity){
-        e.draw()
+        e.draw(null)
     }
 
     class ShadowMap(val mapWidth: Int, val mapHeight: Int,val currentWidth: Int, val currentHeight: Int){
@@ -78,12 +81,14 @@ class Standard(var width: Int,var height: Int): Renderer {
             glBindFramebuffer(GL_FRAMEBUFFER,fboID)
             glClear(GL_DEPTH_BUFFER_BIT)
 
-            val proj = ortho(-30f,30f,-30f,30f,1f,50f)
-            val front = Float3(0.1f,1f,0.1f)
-            val pos = Float3(LightManager.sunPos.x,30f,LightManager.sunPos.z)
-            val lsm = proj * inverse(lookAt(pos ,pos + front,Float3(0f,1f,0f)))
+            if (LightManager.sunLamp != null) {
+                val proj = ortho(-30f, 30f, -30f, 30f, 1f, 50f)
+                val front = LightManager.sunLamp?.direction
+                val pos = Float3(LightManager.sunPos.x, 30f, LightManager.sunPos.z)
+                val lsm = proj * inverse(lookAt(pos, pos - front!!, Float3(0f, 1f, 0f)))
 
-            ShaderManager.setGlobalUniform("lightSpaceMatrix",lsm)
+                ShaderManager.setGlobalUniform("lightSpaceMatrix", lsm)
+            }
             glCullFace(GL_FRONT)
         }
 
