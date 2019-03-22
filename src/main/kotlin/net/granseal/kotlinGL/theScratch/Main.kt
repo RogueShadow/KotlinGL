@@ -1,105 +1,19 @@
 package net.granseal.kotlinGL.theScratch
 
 import com.curiouscreature.kotlin.math.*
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import net.granseal.kotlinGL.engine.*
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL33.*
-import java.awt.Color
-import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-import com.google.gson.reflect.TypeToken
-
-
 
 fun main(args: Array<String>) {
     val main = Main(1600, 900, "KotlinGL", false)
     main.run()
-}
-
-data class KglObject(
-    val type: String,
-    val position: Float3 = Float3(0f,0f,0f),
-    val scale: Float = 1f,
-    val color: Float3 = Float3(1f,1f,1f)
-)
-data class KglResource(
-    val type: String,
-    val name: String,
-    val value: String
-)
-class SaveFile {
-    var resources = mutableListOf<KglResource>()
-    var objects = mutableListOf<KglObject>()
-}
-
-fun getMesh(name: String) = Data.getMesh(name)
-fun getTex(name: String) = Data.getTex(name)
-fun loadResourceFile(f: String) = Data.loadResourceFile(f)
-
-object Data {
-    val gson = GsonBuilder().setPrettyPrinting().create()
-    val meshes = mutableMapOf<String,Mesh>()
-    val textures = mutableMapOf<String,Int>()
-
-    fun loadMesh(name: String, value: String){
-        meshes.putIfAbsent(name,MeshManager.loadObj(value))
-    }
-    fun loadResourceFile(f: String){
-        val collectionType = object : TypeToken<List<KglResource>>() {}.type
-        val resources = gson.fromJson<List<KglResource>>(File(f).readText(),collectionType)
-        resources.forEach { Data.loadResource(it) }
-    }
-    fun loadResource(r: KglResource){
-        when (r.type){
-            "mesh"      -> loadMesh(r.name,r.value)
-            "texture"   -> loadTexture(r.name,r.value)
-            else        -> throw Exception("${r.type}, is not a valid resource")
-        }
-    }
-    fun loadTexture(name: String, value: String){
-        textures.putIfAbsent(name,TextureManager.loadGLTexture(value))
-    }
-    fun getMesh(name: String): Mesh {
-        val m = meshes[name]
-        if (m != null)return m else throw Exception("No Mesh of that name")
-    }
-
-    fun getTex(name: String): Int {
-        val id = textures[name]
-        if (id != null)return id else throw Exception("No Texture by that name loaded")
-    }
-
-    init {
-        val quad = Mesh()
-        quad.verts = floatArrayOf(
-            -1.0f,-1.0f,0.0f,
-            -1.0f,1.0f,0.0f,
-            1.0f,1.0f,0.0f,
-            1.0f,-1.0f,0.0f
-        )
-        quad.normals = floatArrayOf(
-            1f,0f,0f,
-            1f,0f,0f,
-            1f,0f,0f,
-            1f,0f,0f
-        )
-        quad.textureCoords = floatArrayOf(
-            1f,1f,
-            1f,0f,
-            0f,0f,
-            0f,1f
-        )
-        quad.type = GL_TRIANGLE_FAN
-        meshes.putIfAbsent("quad",quad)
-    }
 }
 
 class Main(width: Int, height: Int, title: String,fullScreen: Boolean) : KotlinGL(width, height, title,fullScreen) {
@@ -190,7 +104,7 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
                 )
             )
             addComponent(Data.getMesh("terrain"))
-            position = Float3(-40f, -101f, -40f)
+            position = Float3(-40f, -100f, -40f)
         })
 
 
@@ -242,33 +156,44 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
             position(-2f, 1.5f, 0f)
         })
 
+        class Rotator(var angle: Float,var x: Float, var y: Float, var z: Float): ComponentImpl(){
+            override fun update(delta: Float) {
+                parent.rotate(angle*delta,x,y,z)
+            }
+        }
+
         entities.add(Entity().apply {
             addComponent(DefaultShader(Float3(0f,0f,0f)))
-            addComponent(Data.getMesh("box"))
-            move(5f,2f,2f)
+            addComponent(getMesh("box"))
+            addComponent(Rotator(15f,0f,1f,0f))
+            move(5f,0.5f,2f)
             scale = 0.75f
         })
         entities.last().addChild(Entity().apply {
             addComponent(DefaultShader(Float3(1f,0f,0f)))
-            addComponent(Data.getMesh("box"))
+            addComponent(getMesh("box"))
+            addComponent(Rotator(15f,1f,0f,1f))
             move(0f,2f,0f)
             rotate(45F,0f,0f,1f)
             scale = 0.75f
         }).addChild(Entity().apply {
             addComponent(DefaultShader(Float3(0f,0f,0f)))
-            addComponent(Data.getMesh("box"))
+            addComponent(getMesh("box"))
+            addComponent(Rotator(25f,0f,1f,0.3f))
             move(0f,2f,0f)
             rotate(45F,1f,0f,0f)
             scale = 0.75f
         }).addChild(Entity().apply {
             addComponent(DefaultShader(Float3(1f,1f,0f)))
-            addComponent(Data.getMesh("box"))
+            addComponent(getMesh("box"))
+            addComponent(Rotator(35f,1f,0f,0.3f))
             rotate(45F,1f,0f,0f)
             move(0f,2f,0f)
             scale = 0.75f
         }).addChild(Entity().apply {
             addComponent(DefaultShader(Float3(0f,1f,1f)))
-            addComponent(Data.getMesh("box"))
+            addComponent(getMesh("box"))
+            addComponent(Rotator(115f,1f,0f,0f))
             move(0f,2f,0f)
             rotate(45F,1f,0f,0f)
             scale = 0.75f
@@ -276,6 +201,7 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
 
 
         LightManager.createSunLamp()
+        LightManager.sunLamp?.direction = normalize(Float3(-0.5f + rand.nextFloat(),-1f,-0.5f + rand.nextFloat()))
     }
 
     override fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float) {
@@ -326,9 +252,6 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
         }
 
         entities.forEach{it.update(delta)}
-//        val newP = vecDraw.getLastPos() + Vector3f(-0.05f + rand.nextFloat()*0.1f,-0.049f + rand.nextFloat()*0.1f,-0.05f + rand.nextFloat()*0.1f)
-//        vecDraw.extendLine(newP)
-//        vecDraw.update()
         camera.updateCamera(deltax,deltay,delta)
         LightManager.calculateLightIndex(camera.pos)
     }
@@ -358,8 +281,6 @@ parent.rotate(delta * 15f, 0.5f, 1f, -0.25f)
     }
 }
 
-
-
 class VectorDraw(){
     val mesh = Mesh()
     val entity = Entity()
@@ -371,7 +292,6 @@ class VectorDraw(){
 
     fun init(){
         entity.addComponent(mesh).addComponent(SolidColor())
-
     }
     fun addLine(end: Float3){
         mesh.verts += floatArrayOf(0f,0f,0f)
@@ -395,16 +315,3 @@ class VectorDraw(){
     }
 }
 
-class DynamicTexture(width: Int, height: Int): BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB) {
-    var texID: Int? = null
-
-    fun updateTexture(): Int {
-        if (texID == null) {
-            texID = TextureManager.loadBufferedImage(this)
-            return texID!!
-        } else {
-            TextureManager.updateTexture(this, texID!!)
-            return texID!!
-        }
-    }
-}

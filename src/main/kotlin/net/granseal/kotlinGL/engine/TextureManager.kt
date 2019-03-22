@@ -100,3 +100,18 @@ object TextureManager{
         return buffer.flip()
     }
 }
+
+
+class DynamicTexture(width: Int, height: Int): BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB) {
+    var texID: Int? = null
+
+    fun updateTexture(): Int {
+        if (texID == null) {
+            texID = TextureManager.loadBufferedImage(this)
+            return texID!!
+        } else {
+            TextureManager.updateTexture(this, texID!!)
+            return texID!!
+        }
+    }
+}
