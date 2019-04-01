@@ -21,7 +21,7 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
     val pixels = mutableListOf<Entity>()
     fun rColor() = Float3(rand.nextFloat(),rand.nextFloat(),rand.nextFloat())
 
-    override fun mouseClicked(button: Int, action: Int, mousex: Float, mousey: Float) {
+    override fun mouseDown(button: Int, action: Int, mousex: Float, mousey: Float) {
 
     }
 
@@ -35,7 +35,7 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
 
         pixels += Entity().apply {
             position = Float3(width/4f,height/4f,0f)
-            scale = 10f
+            scale = Float3(10f, 10f, 10f)
             addComponent(cubeMesh)
             addComponent(SolidColor(rColor()))
         }
@@ -67,3 +67,5 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
     }
 
 }
+
+object Singleton

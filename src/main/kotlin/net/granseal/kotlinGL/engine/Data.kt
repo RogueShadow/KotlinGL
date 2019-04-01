@@ -1,5 +1,6 @@
 package net.granseal.kotlinGL.engine
 
+import com.curiouscreature.kotlin.math.Float2
 import com.curiouscreature.kotlin.math.Float3
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -41,23 +42,23 @@ object Data {
 
     init {
         val quad = Mesh()
-        quad.verts = floatArrayOf(
-            -1.0f,-1.0f,0.0f,
-            -1.0f,1.0f,0.0f,
-            1.0f,1.0f,0.0f,
-            1.0f,-1.0f,0.0f
+        quad.verts = mutableListOf(
+            Float3(-1.0f,-1.0f,0.0f),
+            Float3(-1.0f,1.0f,0.0f),
+            Float3(1.0f,1.0f,0.0f),
+            Float3(1.0f,-1.0f,0.0f)
         )
-        quad.normals = floatArrayOf(
-            1f,0f,0f,
-            1f,0f,0f,
-            1f,0f,0f,
-            1f,0f,0f
+        quad.normals = mutableListOf(
+            Float3(1f,0f,0f),
+            Float3(1f,0f,0f),
+            Float3(1f,0f,0f),
+            Float3(1f,0f,0f)
         )
-        quad.textureCoords = floatArrayOf(
-            1f,1f,
-            1f,0f,
-            0f,0f,
-            0f,1f
+        quad.textureCoords = mutableListOf(
+           Float2(1f,1f),
+           Float2(1f,0f),
+           Float2(0f,0f),
+           Float2(0f,1f)
         )
         quad.type = GL33.GL_TRIANGLE_FAN
         meshes.putIfAbsent("quad",quad)

@@ -3,15 +3,24 @@ package net.granseal.kotlinGL.engine
 import com.curiouscreature.kotlin.math.Float2
 import com.curiouscreature.kotlin.math.Float3
 import java.io.File
+import kotlin.streams.toList
 
 
-class Mesh(): ComponentImpl() {
-    var verts = floatArrayOf()
-    var normals = floatArrayOf()
-    var textureCoords = floatArrayOf()
+class Mesh: ComponentImpl() {
+    var combinedVerts = listOf<List<Float>>()
+        get() {
+            if (field.isEmpty()) {
+                field = MeshManager.getCombinedFloatArray(verts,normals,textureCoords,colors)
+            }
+            return field
+        }
+    var verts = mutableListOf<Float3>()
+    var normals = mutableListOf<Float3>()
+    var textureCoords = mutableListOf<Float2>()
     var indices = intArrayOf()
     var type: Int = 4
-    var colors = floatArrayOf()
+    var colors = mutableListOf<Float3>()
+    fun isIndexed(): Boolean = indices.isNotEmpty()
 
     var vao: VAO? = null
 
@@ -26,37 +35,32 @@ class Mesh(): ComponentImpl() {
     }
 
     override fun draw() {
-        vao?.draw()
-    }
-
-    fun getCombinedFloatArray(): FloatArray {
-        return MeshManager.getCombinedFloatArray(verts,normals,textureCoords)
+        val vao = vao
+        if (vao != null) BufferManager.draw(vao)
     }
 }
 
 object MeshManager {
 
-    private var texI = 0
     fun getCombinedFloatArray(
-        verts: FloatArray,
-        normals: FloatArray,
-        textureCoords: FloatArray
-    ): FloatArray {
-        texI = 0
-        val result = mutableListOf<Float>()
-        for (i in 0 until verts.size step 3) {
-            result += verts.slice(i..i + 2)
-
-            if (normals.isNotEmpty()) {
-                result += normals.slice(i..i + 2)
-                if (textureCoords.isNotEmpty()) {
-                    result += textureCoords.slice(texI..texI + 1)
-
-                    texI += 2
-                }
-            }
+        verts: List<Float3>,
+        normals: List<Float3> = emptyList(),
+        tex: List<Float2> = emptyList(),
+        colors: List<Float3> = emptyList()
+    ): List<List<Float>>
+    {
+        fun Float3.toList() = listOf(this.x,this.y,this.z)
+        fun Float2.toList() = listOf(this.x,this.y)
+        val result = mutableListOf<List<Float>>()
+        (0 until verts.size).forEach{ i ->
+            val vert = mutableListOf<Float>()
+            vert.addAll(verts[i].toList())
+            if (normals.isNotEmpty()) vert.addAll(normals[i].toList())
+            if (tex.isNotEmpty()    ) vert.addAll(tex[i].toList())
+            if (colors.isNotEmpty() ) vert.addAll(colors[i].toList())
+            result += vert
         }
-        return result.toFloatArray()
+        return result
     }
 
     fun loadObj(file: String): Mesh {
@@ -64,20 +68,18 @@ object MeshManager {
         val vertRef = mutableListOf<Float3>()
         val texRef = mutableListOf<Float2>()
         val normalRef = mutableListOf<Float3>()
-        val iRef = mutableListOf<Int>()
-        val vertActual = mutableListOf<Float>()
-        val texActual = mutableListOf<Float>()
-        val norActual = mutableListOf<Float>()
+        val vertActual = mutableListOf<Float3>()
+        val texActual = mutableListOf<Float2>()
+        val norActual = mutableListOf<Float3>()
+        val indexes = mutableListOf<List<Int>>()
         obj.forEach {
             val line = it.split(" ")
             if (line.isEmpty())return@forEach
             if (line[0] == "v") {
-                var s = 1
-                while (line[s].isEmpty())s++
                 vertRef += Float3(
-                    line[s+0].toFloat(),
-                    line[s+1].toFloat(),
-                    line[s+2].toFloat()
+                    line[1].toFloat(),
+                    line[2].toFloat(),
+                    line[3].toFloat()
                 )
             }
             if (line[0] == "vt") {
@@ -91,61 +93,24 @@ object MeshManager {
                 )
             }
             if (line[0] == "f") {
-                val f1 = line[1].split("/")
-                val f2 = line[2].split("/")
-                val f3 = line[3].split("/")
-                iRef += f1[0].toInt()
-                vertActual += vertRef[f1[0].toInt() - 1].x
-                vertActual += vertRef[f1[0].toInt() - 1].y
-                vertActual += vertRef[f1[0].toInt() - 1].z
-                if (f1.size > 1 && f1[1].isNotEmpty()) {
-                    texActual += texRef[f1[1].toInt() - 1].x
-                    texActual += texRef[f1[1].toInt() - 1].y
-                }
-                if (f1.size > 2) {
-                    norActual += normalRef[f1[2].toInt() - 1].x
-                    norActual += normalRef[f1[2].toInt() - 1].y
-                    norActual += normalRef[f1[2].toInt() - 1].z
-                }
-
-                iRef += f2[0].toInt()
-                vertActual += vertRef[f2[0].toInt() - 1].x
-                vertActual += vertRef[f2[0].toInt() - 1].y
-                vertActual += vertRef[f2[0].toInt() - 1].z
-                if (f2.size > 1 && f2[1].isNotEmpty()) {
-                    texActual += texRef[f2[1].toInt() - 1].x
-                    texActual += texRef[f2[1].toInt() - 1].y
-                }
-                if (f2.size > 2) {
-                    norActual += normalRef[f2[2].toInt() - 1].x
-                    norActual += normalRef[f2[2].toInt() - 1].y
-                    norActual += normalRef[f2[2].toInt() - 1].z
-                }
-
-                iRef += f3[0].toInt()
-                vertActual += vertRef[f3[0].toInt() - 1].x
-                vertActual += vertRef[f3[0].toInt() - 1].y
-                vertActual += vertRef[f3[0].toInt() - 1].z
-                if (f3.size > 1 && f3[1].isNotEmpty()) {
-                    texActual += texRef[f3[1].toInt() - 1].x
-                    texActual += texRef[f3[1].toInt() - 1].y
-                }
-                if (f3.size > 2) {
-                    norActual += normalRef[f3[2].toInt() - 1].x
-                    norActual += normalRef[f3[2].toInt() - 1].y
-                    norActual += normalRef[f3[2].toInt() - 1].z
+                val faces = listOf(line[1].split("/"),line[2].split("/"),line[3].split("/"))
+                faces.forEach { face ->
+                    indexes += listOf(
+                        face[0].toInt(),
+                        face[1].toInt(),
+                        face[2].toInt())
                 }
             }
-
         }
-        println("Loaded Mesh: $file")
-        println("Verticies loaded: ${vertActual.size / 3}")
-        println("Normals loaded: ${norActual.size / 3}")
-        println("Texture Coords Loaded: ${texActual.size / 2}")
+        indexes.forEach{i ->
+            vertActual += vertRef[i[0]-1]
+            texActual += texRef[i[1]-1]
+            norActual += normalRef[i[2]-1]
+        }
         return Mesh().apply {
-            verts = vertActual.toFloatArray()
-            normals = norActual.toFloatArray()
-            textureCoords = texActual.toFloatArray()
+            verts = vertActual
+            normals = norActual
+            textureCoords = texActual
         }
     }
 }

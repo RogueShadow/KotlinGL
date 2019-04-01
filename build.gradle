@@ -23,6 +23,12 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile "org.jetbrains.kotlin:kotlin-script-runtime"
+    compile "org.jetbrains.kotlin:kotlin-script-util"
+    compile "org.jetbrains.kotlin:kotlin-scripting-common"
+    //compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable"
+    compile "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+    //compile "org.jetbrains.kotlin:kotlin-scripting-jvm-host"
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-assimp:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-bgfx:$lwjglVersion"
@@ -50,11 +56,10 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opus:$lwjglVersion:$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-par:$lwjglVersion:$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives"
-    compile 'com.hackoeur:jglm:1.0.0'
-    compile 'com.github.kotlin-graphics:imgui:-SNAPSHOT'
     compile 'cz.advel.jbullet:jbullet:20101010-1'
     //compile files('libs/KotlinMathLib.jar')
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.fusesource.jansi:jansi:1.17.1'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:

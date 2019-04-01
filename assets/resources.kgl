@@ -2,41 +2,46 @@
   {
     "type": "texture",
     "name": "container_diff",
-    "value": "container2.png"
+    "value": "images/container2.png"
   },
   {
     "type": "texture",
     "name": "container_spec",
-    "value": "container2_specular.png"
+    "value": "images/container2_specular.png"
   },
   {
     "type": "texture",
     "name": "ground",
-    "value": "GroundForest003_COL_VAR1_3K.jpg"
+    "value": "images/GroundForest003_COL_VAR1_3K.jpg"
   },
   {
     "type": "mesh",
     "name": "sphere",
-    "value": "sphere.obj"
+    "value": "models/sphere.obj"
   },
   {
     "type": "mesh",
     "name": "box",
-    "value": "flatcube.obj"
-  },
-  {
-    "type": "mesh",
-    "name": "deca",
-    "value": "deca2.obj"
-  },
-  {
-    "type": "mesh",
-    "name": "terrain",
-    "value": "terrain2.obj"
+    "value": "models/flatcube.obj"
   },
   {
     "type": "mesh",
     "name": "dragon",
-    "value": "dragon.obj"
+    "value": "models/dragon.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "cube",
+    "value": "models/cube.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "deca",
+    "value": "models/deca2.obj"
+  },
+  {
+    "type": "mesh",
+    "name": "terrain",
+    "value": "models/terrain2.obj"
   }
 ]

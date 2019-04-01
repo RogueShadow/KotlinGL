@@ -4,6 +4,7 @@ import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.shaders.Shader
 
 open class Entity: Groupable, Drawable, Updatable {
+    var inheritScale = false
     override var parent: Groupable? = null
     override var children = mutableListOf<Groupable>()
     override fun addChild(g: Groupable): Groupable{
@@ -13,7 +14,7 @@ open class Entity: Groupable, Drawable, Updatable {
     }
     private val components = mutableSetOf<Component>()
     var position = Float3()
-    var scale = 1f
+    var scale = Float3(1f,1f,1f)
     private var rotationMatrix = Mat4.identity()
 
     fun components():Set<Component>{
@@ -23,12 +24,25 @@ open class Entity: Groupable, Drawable, Updatable {
     override fun shader(): Shader? {
         return components().singleOrNull{it is Shader} as Shader?
     }
+    fun localTransform(): Mat4 {
+        return translation(position) * rotationMatrix
+    }
     override fun transform(): Mat4 {
-        val parent = parent
-        return if (parent is Drawable){
-            parent.transform() * (translation(position) * rotationMatrix * scale(Float3(scale,scale,scale)))
+        val parent = parent as Entity?
+        return if (parent != null){
+            parent.transform() * localTransform()
         }else{
-            (translation(position) * rotationMatrix * scale(Float3(scale,scale,scale)))
+            localTransform()
+        }
+    }
+
+    fun scale(): Mat4 {
+        return if (inheritScale) {
+            val parent = parent as Entity?
+            val pScale = parent?.scale()
+            if (pScale != null) pScale * scale(scale) else scale(scale)
+        }else{
+            scale(scale)
         }
     }
 
@@ -60,9 +74,9 @@ open class Entity: Groupable, Drawable, Updatable {
 
     override fun draw(shader: Shader?) {
         if (shader == null) {
-            shader()?.use(transform())
+            shader()?.use(transform() * scale())
         }else {
-            shader.use(transform())
+            shader.use(transform() * scale())
         }
 
         components.forEach{

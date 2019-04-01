@@ -1,6 +1,11 @@
 package net.granseal.kotlinGL.engine
 
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33.*
+import java.nio.IntBuffer
 
 object BufferManager {
     const val FLOAT_SIZE = 4
@@ -36,29 +41,36 @@ object BufferManager {
     }
 
     fun createVAOFromMesh(mesh: Mesh): VAO {
+        val stride = mesh.combinedVerts.first().size * FLOAT_SIZE
         val vao = genAndBindVertexArray()
         val vbo = genAndBindBuffer(GL_ARRAY_BUFFER)
-        val data = mesh.getCombinedFloatArray()
-        glBufferData(GL_ARRAY_BUFFER, data, GL_DYNAMIC_DRAW)
+        var ebo = -1
+        glBufferData(GL_ARRAY_BUFFER, mesh.combinedVerts.flatten().toFloatArray(), GL_STATIC_DRAW)
+        if (mesh.isIndexed()){
+            ebo = genAndBindBuffer(GL_ELEMENT_ARRAY_BUFFER)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,mesh.indices,GL_STATIC_DRAW)
+        }
 
         if (mesh.normals.isNotEmpty() && mesh.textureCoords.isNotEmpty()) {
-            setAttribPointer(0, 3, 8 * FLOAT_SIZE, 0)
-            setAttribPointer(1, 3, 8 * FLOAT_SIZE, 3L * FLOAT_SIZE)
-            setAttribPointer(2, 2, 8 * FLOAT_SIZE, 6L * FLOAT_SIZE)
+            setAttribPointer(0, 3, stride, 0)
+            setAttribPointer(1, 3, stride, 3L * FLOAT_SIZE)
+            setAttribPointer(2, 2, stride, 6L * FLOAT_SIZE)
         }
         if (mesh.normals.isNotEmpty() && mesh.textureCoords.isEmpty()){
-            setAttribPointer(0, 3, 6 * FLOAT_SIZE, 0)
-            setAttribPointer(1, 3, 6 * FLOAT_SIZE, 3L * FLOAT_SIZE)
+            setAttribPointer(0, 3, stride, 0)
+            setAttribPointer(1, 3, stride, 3L * FLOAT_SIZE)
         }
         if (mesh.normals.isEmpty() && mesh.textureCoords.isEmpty()){
-            setAttribPointer(0,3,3* FLOAT_SIZE,0)
+            setAttribPointer(0,3,stride,0)
         }
         if (mesh.normals.isEmpty() && mesh.textureCoords.isNotEmpty()){
-            setAttribPointer(0, 3, 5 * FLOAT_SIZE, 0)
-            setAttribPointer(1, 2, 5 * FLOAT_SIZE, 3L * FLOAT_SIZE)
+            setAttribPointer(0, 3, stride, 0)
+            setAttribPointer(1, 2, stride, 3L * FLOAT_SIZE)
         }
 
-        return VAO(vao,vbo,0,mesh.verts.size/3,mesh.type)
+        val buf = BufferUtils.createIntBuffer(mesh.indices.size)
+        buf.put(mesh.indices)
+        return VAO(vao,vbo,ebo,buf,0,mesh.verts.size,mesh.type)
     }
 
     fun cleanUp(){
@@ -93,18 +105,24 @@ object BufferManager {
             //glBufferSubData(GL_ARRAY_BUFFER,0,mesh.getCombinedFloatArray())
             val buf = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
             buf?.clear()
-            buf?.put(mesh.getCombinedFloatArray().toByteBuffer())
+            buf?.put(mesh.combinedVerts.flatten().toFloatArray().toByteBuffer())
             glUnmapBuffer(GL_ARRAY_BUFFER)
         }else{
-            glBufferData(GL_ARRAY_BUFFER,mesh.getCombinedFloatArray(), GL_DYNAMIC_DRAW)
-            mesh.vao = mesh.vao?.copy(endIndex = mesh.verts.size/3)
+            glBufferData(GL_ARRAY_BUFFER,mesh.combinedVerts.flatten().toFloatArray(), GL_STATIC_DRAW)
+            mesh.vao = mesh.vao?.copy(endIndex = mesh.verts.size)
+        }
+    }
+
+    fun draw(vao: VAO){
+        if (vao.eboID != -1) {
+            glBindVertexArray(vao.vaoID)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vao.eboID)
+            glDrawElements(vao.type, vao.indices)
+        }else{
+            glBindVertexArray(vao.vaoID)
+            glDrawArrays(vao.type,vao.startIndex,vao.endIndex)
         }
     }
 }
 
-data class VAO(val vaoID: Int,val vboID: Int, val startIndex: Int, val endIndex: Int,val type: Int = GL_TRIANGLES) {
-    fun draw() {
-        glBindVertexArray(vaoID)
-        glDrawArrays(type, startIndex, endIndex)
-    }
-}
+data class VAO(val vaoID: Int, val vboID: Int, val eboID: Int, val indices: IntBuffer, val startIndex: Int, val endIndex: Int, val type: Int = GL_TRIANGLES)

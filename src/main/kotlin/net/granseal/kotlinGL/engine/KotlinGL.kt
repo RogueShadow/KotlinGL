@@ -37,7 +37,7 @@ abstract class KotlinGL(var width: Int = 800,
     private var mousey = 0f
     private var lastx = 0f
     private var lasty = 0f
-    private val debugT = Timer(System::nanoTime)
+    private val debugT = Timer()
 
     var renderer = Standard(width, height)
 
@@ -68,7 +68,7 @@ abstract class KotlinGL(var width: Int = 800,
 
     var camera = Camera()
 
-    private val timer = Timer(System::nanoTime)
+    private val timer = Timer()
 
     fun run() {
         try {
@@ -149,7 +149,7 @@ abstract class KotlinGL(var width: Int = 800,
         })
         glfwSetMouseButtonCallback(window,object: GLFWMouseButtonCallback(){
             override fun invoke(window: Long, button: Int, action: Int, mods: Int) {
-                mouseClicked(button,action,mousex, mousey)
+                mouseDown(button,action,mousex, mousey)
             }
 
         })
@@ -228,13 +228,13 @@ abstract class KotlinGL(var width: Int = 800,
             lasty = mousey
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
             while (renderer.next())draw(renderer)
-            timer.mark()
             glfwSwapBuffers(window) // swap the color buffers
+            timer.mark()
         }
     }
 
     //Events sent to engine implementation
-    abstract fun mouseClicked(button: Int,action: Int, mousex: Float, mousey: Float)
+    abstract fun mouseDown(button: Int, action: Int, mousex: Float, mousey: Float)
     abstract fun keyEvent(key: String, action: Int)
     abstract fun initialize()
     abstract fun update(delta: Float, deltax: Float, deltay: Float)
@@ -248,8 +248,8 @@ abstract class KotlinGL(var width: Int = 800,
     fun keyPressed(key: Int)=(glfwGetKey(window,key) == 1)
     fun keyReleased(key: Int)=(glfwGetKey(window,key) == 3)
     fun keyHeld(key: Int)=(glfwGetKey(window,key) == 2)
-    fun mouseClicked(button: Int) =  (glfwGetMouseButton(window,button) == GLFW_PRESS)
-    fun mouseReleased(button: Int) = (glfwGetMouseButton(window,button) == GLFW_RELEASE)
+    fun mouseDown(button: Int) =  (glfwGetMouseButton(window,button) == GLFW_PRESS)
+    fun mouseUp(button: Int) = (glfwGetMouseButton(window,button) == GLFW_RELEASE)
 
     //Handy functions.
     fun setTitle(title: String) = glfwSetWindowTitle(window,title)
