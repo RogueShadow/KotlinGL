@@ -1,15 +1,10 @@
 package net.granseal.kotlinGL.engine
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33.*
 import java.nio.IntBuffer
 
 object BufferManager {
-    const val FLOAT_SIZE = 4
-
     val vaoList = mutableListOf<Int>()
     val buffers = mutableListOf<Int>()
     val fboList = mutableListOf<Int>()
@@ -41,7 +36,7 @@ object BufferManager {
     }
 
     fun createVAOFromMesh(mesh: Mesh): VAO {
-        val stride = mesh.combinedVerts.first().size * FLOAT_SIZE
+        val stride = mesh.combinedVerts.first().size * java.lang.Float.BYTES
         val vao = genAndBindVertexArray()
         val vbo = genAndBindBuffer(GL_ARRAY_BUFFER)
         var ebo = -1
@@ -53,19 +48,19 @@ object BufferManager {
 
         if (mesh.normals.isNotEmpty() && mesh.textureCoords.isNotEmpty()) {
             setAttribPointer(0, 3, stride, 0)
-            setAttribPointer(1, 3, stride, 3L * FLOAT_SIZE)
-            setAttribPointer(2, 2, stride, 6L * FLOAT_SIZE)
+            setAttribPointer(1, 3, stride, 3L * java.lang.Float.BYTES)
+            setAttribPointer(2, 2, stride, 6L * java.lang.Float.BYTES)
         }
         if (mesh.normals.isNotEmpty() && mesh.textureCoords.isEmpty()){
             setAttribPointer(0, 3, stride, 0)
-            setAttribPointer(1, 3, stride, 3L * FLOAT_SIZE)
+            setAttribPointer(1, 3, stride, 3L * java.lang.Float.BYTES)
         }
         if (mesh.normals.isEmpty() && mesh.textureCoords.isEmpty()){
             setAttribPointer(0,3,stride,0)
         }
         if (mesh.normals.isEmpty() && mesh.textureCoords.isNotEmpty()){
             setAttribPointer(0, 3, stride, 0)
-            setAttribPointer(1, 2, stride, 3L * FLOAT_SIZE)
+            setAttribPointer(1, 2, stride, 3L * java.lang.Float.BYTES)
         }
 
         val buf = BufferUtils.createIntBuffer(mesh.indices.size)
@@ -123,6 +118,7 @@ object BufferManager {
             glDrawArrays(vao.type,vao.startIndex,vao.endIndex)
         }
     }
+
+    data class VAO(val vaoID: Int, val vboID: Int, val eboID: Int, val indices: IntBuffer, val startIndex: Int, val endIndex: Int, val type: Int = GL_TRIANGLES)
 }
 
-data class VAO(val vaoID: Int, val vboID: Int, val eboID: Int, val indices: IntBuffer, val startIndex: Int, val endIndex: Int, val type: Int = GL_TRIANGLES)

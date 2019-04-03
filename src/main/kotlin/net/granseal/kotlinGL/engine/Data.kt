@@ -2,20 +2,21 @@ package net.granseal.kotlinGL.engine
 
 import com.curiouscreature.kotlin.math.Float2
 import com.curiouscreature.kotlin.math.Float3
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import org.lwjgl.opengl.GL33
 import java.io.File
 
 object Data {
-    val gson = GsonBuilder().setPrettyPrinting().create()
+    val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     val meshes = mutableMapOf<String,Mesh>()
     val textures = mutableMapOf<String,Int>()
 
     fun loadMesh(name: String, value: String){
-        meshes.putIfAbsent(name,MeshManager.loadObj(value))
+        meshes.putIfAbsent(name,Mesh.loadObj(value))
     }
     fun loadResourceFile(f: String){
+        if (!File(f).exists())throw Exception("$f is not a valid resource file.")
         val collectionType = object : TypeToken<List<KglResource>>() {}.type
         val resources = gson.fromJson<List<KglResource>>(File(f).readText(),collectionType)
         resources.forEach { Data.loadResource(it) }
@@ -60,24 +61,27 @@ object Data {
            Float2(0f,0f),
            Float2(0f,1f)
         )
-        quad.type = GL33.GL_TRIANGLE_FAN
+        quad.type = Mesh.TRIANGLE_FAN
         meshes.putIfAbsent("quad",quad)
     }
+
+    data class KglObject(
+        val type: String,
+        val position: Float3 = Float3(0f,0f,0f),
+        val scale: Float = 1f,
+        val color: Float3 = Float3(1f,1f,1f)
+    )
+
+    data class KglResource(
+        val type: String,
+        val name: String,
+        val value: String
+    )
+
+    data class SaveFile(
+        var resourceFile: String = "",
+        var objects: MutableList<Data.KglObject> = mutableListOf()
+    )
+
 }
 
-
-data class KglObject(
-    val type: String,
-    val position: Float3 = Float3(0f,0f,0f),
-    val scale: Float = 1f,
-    val color: Float3 = Float3(1f,1f,1f)
-)
-data class KglResource(
-    val type: String,
-    val name: String,
-    val value: String
-)
-class SaveFile {
-    var resources = mutableListOf<KglResource>()
-    var objects = mutableListOf<KglObject>()
-}

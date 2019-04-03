@@ -2,15 +2,12 @@ package net.granseal.kotlinGL.theScratch
 
 import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.*
+import net.granseal.kotlinGL.engine.components.ComponentImpl
 import net.granseal.kotlinGL.engine.renderer.Renderer
 import net.granseal.kotlinGL.engine.shaders.*
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL33.*
-import java.awt.image.BufferedImage
-import java.io.File
 import javax.script.ScriptContext
-import javax.script.ScriptEngineFactory
 import javax.script.ScriptEngineManager
 import kotlin.math.cos
 import kotlin.math.sin
@@ -21,9 +18,9 @@ fun main(args: Array<String>) {
 
     val js = ScriptEngineManager().getEngineByExtension("js")
     val b = js.createBindings()
-    b.put("a", 10)
-    b.put("b", 20)
-    b.put("c", 30)
+    b["a"] = 10
+    b["b"] = 20
+    b["c"] = 30
     js.setBindings(b, ScriptContext.GLOBAL_SCOPE)
     js.eval("var d = a + b + c;")
     val test = js["d"]
@@ -41,12 +38,12 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
     fun rColor() = Float3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat())
     fun float3(init: Float) = Float3(init, init, init)
 
-    fun loadSaveFile(g: SaveFile): List<Entity> {
+    fun loadSaveFile(g: Data.SaveFile): List<Entity> {
         val list = mutableListOf<Entity>()
         g.objects.forEach {
             val e = Entity()
             when (it.type) {
-                "Box" -> e.addComponent(Data.getMesh("box"))
+                "Box" -> e.addComponent(getMesh("box"))
             }
             e.position = it.position
             e.scale = float3(it.scale)
@@ -60,28 +57,28 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
         loadResourceFile("resources.kgl")
         draw.init()
 
-        val g = SaveFile()
+        val g = Data.SaveFile()
         with(g.objects) {
-            add(KglObject("Box", color = rColor()))
-            add(KglObject("Sphere", color = rColor()))
+            add(Data.KglObject("Box", color = rColor()))
+            add(Data.KglObject("Sphere", color = rColor()))
         }
 
         camera.projection = perspective(45f, width.toFloat() / height.toFloat(), 0.1f, 200f)
 
         root.addChild(Entity().apply {
             addComponent(Sprite(renderer.shadowMap.texID))
-            addComponent(Data.getMesh("quad"))
+            addComponent(getMesh("quad"))
             position = Float3(0f, 3f, 0f)
         })
 
         root.addChild(Entity().apply {
-            addComponent(Data.getMesh("deca"))
+            addComponent(getMesh("deca"))
             addComponent(DefaultShader(diffuse = Float3(0.5f, 0.8f, 0.3f)))
             position = Float3(0f, 8f, 0f)
             scale = float3(.5f)
             addComponent(object : ComponentImpl() {
                 override fun update(delta: Float) {
-                    parent.rotate(delta * 75, 0.5f, 0.5f, 0.5f)
+                    parent.rotation *= rotation(Float3(0.5f, 0.5f, 0.5f),delta * 75)
                 }
             })
         })
@@ -89,16 +86,16 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
         root.addChild(Entity().apply {
             addComponent(
                 DefaultShader(
-                    diffTexID = Data.getTex("ground"),
+                    diffTexID = getTex("ground"),
                     shininess = 0.1f
                 )
             )
-            addComponent(Data.getMesh("terrain"))
+            addComponent(getMesh("terrain"))
             position = Float3(-40f, -100f, -40f)
         })
 
 
-        repeat(4) {
+        repeat(0) {
             val e = Entity()
             val p = PointLight()
             e.position.x = -20f + it * 5 + rand.nextFloat()
@@ -133,76 +130,58 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
 
         root.addChild(Entity().apply {
             addComponent(DefaultShader())
-            addComponent(Data.getMesh("dragon"))
+            addComponent(getMesh("dragon"))
             scale = float3(0.1f)
         })
 
         root.addChild(Entity().apply {
             addComponent(
                 DefaultShader(
-                    diffTexID = Data.getTex("container_diff"),
-                    specTexID = Data.getTex("container_spec")
+                    diffTexID = getTex("container_diff"),
+                    specTexID = getTex("container_spec")
                 )
             )
             addComponent(Data.getMesh("box"))
-            position(-2f, 1.5f, 0f)
+            position = Float3(-2f, 1.5f, 0f)
         })
 
+        fun rVec() = normalize(Float3(rand.nextFloat(),rand.nextFloat(),rand.nextFloat()))
         class Rotator(var angle: Float, var x: Float, var y: Float, var z: Float) : ComponentImpl() {
+            constructor(angle: Float, axis: Float3) : this(angle,axis.x,axis.y,axis.z)
             override fun update(delta: Float) {
-                parent.rotate(angle * delta, x, y, z)
+                parent.rotation *= rotation(Float3(x,y,z),angle * delta)
             }
         }
-
-        root.addChild(Entity().apply {
-            addComponent(Rotator(25f, 1f, 0f, 0f))
-            move(5f, 0.5f, 2f)
-            rotate(90f, 0f, 0f, 1f)
-        })
-        root.children.last().addChild(Entity().apply {
-            addComponent(DefaultShader(Float3(0f, 1f, 0f)))
-            addComponent(getMesh("cube"))
-            scale = Float3(0.25f, 1f, 0.25f)
-            move(0f, 1f, 0f)
-        }).addChild(Entity().apply {
-            addComponent(Rotator(25f, 0f, 0f, 1f))
-            move(0f, 1f, 0f)
-        }).addChild(Entity().apply {
-            addComponent(DefaultShader(Float3(0f, 0f, 1f)))
-            addComponent(getMesh("cube"))
-            scale = Float3(0.25f, 1f, 0.25f)
-            move(0f, 1f, 0f)
-        }).addChild(Entity().apply {
-            addComponent(Rotator(25f, 1f, 0f, 0f))
-            move(0f, 1f, 0f)
-        }).addChild(Entity().apply {
-            addComponent(DefaultShader(Float3(1f, 1f, 1f)))
-            addComponent(getMesh("cube"))
-            move(0f, 1f, 0f)
-            scale = Float3(0.25f, 1f, 0.25f)
-        }).addChild(Entity().apply {
-            addComponent(Rotator(25f, 0f, 0f, 1f))
-            move(0f, 1f, 0f)
-        }).addChild(Entity().apply {
-            addComponent(SolidColor(Float3(0f, 1f, 1f)))
-            addComponent(getMesh("cube"))
-            addComponent(PointLight())
-            move(0f, 1f, 0f)
-            scale = Float3(0.25f, 1f, 0.25f)
-            addComponent(object : ComponentImpl() {
-                var counter = 0f
-                var timeToDraw = 0.5f
-                override fun update(delta: Float) {
-                    counter += delta
-                    if (counter >= timeToDraw){
-                        counter = 0f
-                        val pos = (transform() * scale() * (Float4(position, 1f) + Float3(0f, -2f, 0f)))
-                        draw.extendLine(pos.xyz)
-                    }
-                }
-            })
-        })
-
+        val armPosition = Float3(5f,1f,2f)
+        val jointSize = float3(0.25f)
+        val jointMaterial = DefaultShader(Float3(0.4f,0.4f,0.4f))
+        val armLength = 0.5f
+        val armScale = Float3(0.15f,armLength,0.15f)
+        val armMaterial = DefaultShader(Float3(0.7f,0.7f,1f))
+        val joints = (0..8).map{Rotator(-20 + rand.nextFloat()*20f,rVec())}
+        val base = Entity().apply{
+            position = armPosition
+        }
+        var entitySelect = base
+        joints.forEach{
+            val joint = Entity().apply{
+                addComponent(it)
+                addComponent(getMesh("sphere"))
+                addComponent(jointMaterial)
+                scale = jointSize
+                position += Float3(0f,armLength,0f)
+            }
+            val arm = Entity().apply{
+                addComponent(armMaterial)
+                addComponent(getMesh("cube"))
+                scale = armScale
+                position += Float3(0f,armLength,0f)
+            }
+            joint.addChild(arm)
+            entitySelect.addChild(joint)
+            entitySelect = arm
+        }
+        root.addChild(base)
 
         LightManager.createSunLamp()
         LightManager.sunLamp?.direction = normalize(Float3(-0.5f + rand.nextFloat(), -1f, -0.5f + rand.nextFloat()))
@@ -224,15 +203,12 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
     override fun update(delta: Float, deltax: Float, deltay: Float) {
         setTitle("$windowTitle ${getFPS()}")
 
-
-
         if (keyPressed(GLFW_KEY_W)) camera.forward(delta)
         if (keyPressed(GLFW_KEY_S)) camera.backword(delta)
         if (keyPressed(GLFW_KEY_A)) camera.right(delta)
         if (keyPressed(GLFW_KEY_D)) camera.left(delta)
         if (keyPressed(GLFW_KEY_SPACE)) camera.up(delta)
         if (keyPressed(GLFW_KEY_LEFT_CONTROL)) camera.down(delta)
-
 
         root.update(delta)
         draw.update()
@@ -246,7 +222,7 @@ class Main(width: Int, height: Int, title: String, fullScreen: Boolean) : Kotlin
     }
 }
 
-class VectorDraw() {
+class VectorDraw {
     val mesh = Mesh()
     val entity = Entity()
 

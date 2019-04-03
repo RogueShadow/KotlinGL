@@ -1,17 +1,18 @@
 package net.granseal.kotlinGL.theScratch
 
-import com.curiouscreature.kotlin.math.*
-import net.granseal.kotlinGL.engine.*
+import com.curiouscreature.kotlin.math.Float3
+import com.curiouscreature.kotlin.math.Float4
+import com.curiouscreature.kotlin.math.lookAt
+import com.curiouscreature.kotlin.math.ortho
+import net.granseal.kotlinGL.engine.Entity
+import net.granseal.kotlinGL.engine.KotlinGL
+import net.granseal.kotlinGL.engine.LightManager
+import net.granseal.kotlinGL.engine.Mesh
 import net.granseal.kotlinGL.engine.renderer.Renderer
-import net.granseal.kotlinGL.engine.shaders.DefaultShader
-import net.granseal.kotlinGL.engine.shaders.PointLight
 import net.granseal.kotlinGL.engine.shaders.SolidColor
-import net.granseal.kotlinGL.engine.shaders.SunLamp
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.random.Random
 
-fun main(args: Array<String>) {
+fun main() {
     MathsMain(800, 600, "KotlinGL", false).run()
 }
 
@@ -31,7 +32,7 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
     override fun initialize() {
         mouseGrabbed = false
         camera.projection = ortho(0f, width.toFloat()/2, height.toFloat()/2,0f,-20f,20f)
-        val cubeMesh = MeshManager.loadObj("flatcube.obj")
+        val cubeMesh = Mesh.loadObj("models/flatcube.obj")
 
         pixels += Entity().apply {
             position = Float3(width/4f,height/4f,0f)
@@ -41,9 +42,9 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
         }
 
         val pos = Float3(0f,1f,-20f)
-        var look = lookAt(pos,pos+Float3(0f,0f,1f),Float3(0f,1f,0f))
-        var testPos = Float4(1f,1f,1f,1f)
-        var resultPos = camera.projection * look * testPos
+        val look = lookAt(pos,pos+Float3(0f,0f,1f),Float3(0f,1f,0f))
+        val testPos = Float4(1f,1f,1f,1f)
+        val resultPos = camera.projection * look * testPos
         println("Projection\n${camera.projection}\nLookAt\n$look\nTestPoint\n$testPos\nResult\n$resultPos")
 
         println("projView\n${camera.projection * look}")
@@ -67,5 +68,3 @@ class MathsMain(width: Int, height: Int, title: String,fullScreen: Boolean) : Ko
     }
 
 }
-
-object Singleton

@@ -15,17 +15,11 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil.NULL
-import java.nio.ByteBuffer
 
-object Config {
-    const val SHADER_DIR = "shaders/"
-
-}
-
-abstract class KotlinGL(var width: Int = 800,
-                        var height: Int = 600,
-                        var windowTitle: String = "KotlinGL",
-                        var fullScreen: Boolean = false) {
+abstract class KotlinGL(var width: Int = Config.WIDTH,
+                        var height: Int = Config.HEIGHT,
+                        var windowTitle: String = Config.TITLE,
+                        var fullScreen: Boolean = Config.FULLSCREEN) {
 
 
     private var debugProc: Callback? = null
@@ -41,7 +35,7 @@ abstract class KotlinGL(var width: Int = 800,
 
     var renderer = Standard(width, height)
 
-    var fov = 45f
+    var fov = Config.FOV
         set(value){
             field = value
             camera.projection = perspective(fov,width.toFloat()/height,nearZ,farZ)
@@ -253,10 +247,4 @@ abstract class KotlinGL(var width: Int = 800,
 
     //Handy functions.
     fun setTitle(title: String) = glfwSetWindowTitle(window,title)
-}
-
-fun FloatArray.toByteBuffer(): ByteBuffer {
-    val buffer = ByteBuffer.allocateDirect(this.size * java.lang.Float.BYTES)
-    this.forEach { buffer.putFloat(it) }
-    return buffer
 }

@@ -1,9 +1,9 @@
 package net.granseal.kotlinGL.engine.shaders
 
 import com.curiouscreature.kotlin.math.*
-import net.granseal.kotlinGL.engine.ComponentImpl
 import net.granseal.kotlinGL.engine.Config
 import net.granseal.kotlinGL.engine.LightManager
+import net.granseal.kotlinGL.engine.components.ComponentImpl
 import org.lwjgl.opengl.GL33.*
 import java.io.File
 
