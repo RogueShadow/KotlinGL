@@ -7,4 +7,5 @@ interface Component {
     fun draw()
     fun init()
     var parent: Entity
+    var remove: Boolean
 }

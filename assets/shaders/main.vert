@@ -16,10 +16,9 @@ uniform float elapsedTime;
 
 void main()
 {
-
     gl_Position = projection * view * transform * vec4(aPos,1);
     texCoord = aTexCoord;
     Normal = transpose(inverse(mat3((transform)))) * aNormal;
     FragPos = vec3(transform * vec4(aPos,1));
-    FragPosLightSpace = (lightSpaceMatrix) * vec4(FragPos,1);
+    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos,1);
 }

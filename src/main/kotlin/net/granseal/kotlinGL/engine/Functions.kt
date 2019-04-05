@@ -1,6 +1,8 @@
 package net.granseal.kotlinGL.engine
 
+import com.curiouscreature.kotlin.math.Float3
 import java.nio.ByteBuffer
+import kotlin.random.Random
 
 
 fun getMesh(name: String) = Data.getMesh(name)
@@ -11,3 +13,5 @@ fun FloatArray.toByteBuffer(): ByteBuffer {
     this.forEach { buffer.putFloat(it) }
     return buffer
 }
+val rand = Random(System.nanoTime())
+fun rColor() = Float3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat())

@@ -2,11 +2,14 @@ package net.granseal.kotlinGL.engine
 
 import com.curiouscreature.kotlin.math.*
 import net.granseal.kotlinGL.engine.components.Component
+import net.granseal.kotlinGL.engine.components.ComponentImpl
+import net.granseal.kotlinGL.engine.shaders.DefaultShader
 import net.granseal.kotlinGL.engine.shaders.Shader
 
 
 open class Entity {
     //config vars
+    var id = ""
     var inheritScale = false
 
     //grouping
@@ -31,10 +34,20 @@ open class Entity {
         return g
     }
 
+    fun addChild(block: Entity.() -> Unit): Entity {
+        val e = Entity()
+        e.apply(block)
+        e.parent = this
+        children.add(e)
+        return e
+    }
+
     fun update(delta: Float) {
         components.forEach {
             it.update(delta)
         }
+        val removeList = components.filter{it.remove}
+        components.removeAll(removeList)
         children.forEach {
             it.update(delta)
         }
@@ -42,7 +55,7 @@ open class Entity {
 
     fun draw(shader: Shader?) {
         if (shader == null) {
-            shader()?.use(transform() * scale())
+            getComponentByType<Shader>()?.use(transform() * scale())
         } else {
             shader.use(transform() * scale())
         }
@@ -57,14 +70,39 @@ open class Entity {
     }
 
     fun addComponent(comp: Component): Entity {
-        components.add(comp)
         comp.parent = this
         comp.init()
+        components.add(comp)
         return this
     }
 
-    private fun shader(): Shader? {
-        return components().singleOrNull { it is Shader } as Shader?
+    fun addComponent(block: () -> Component) = addComponent(block.invoke())
+
+    inline fun <reified T> getComponentByType(): T? {
+        return this.components().firstOrNull{it is T} as T?
+    }
+
+    fun getEntityById(id: String): Entity? {
+        if (this.id == id){
+            return this
+        }else{
+            children.forEach{
+                val result = it.getEntityById(id)
+                if (result != null) {
+                    return result
+                }
+            }
+            return null
+        }
+    }
+
+    fun getAllEntityById(id: String): List<Entity> {
+        val result = mutableListOf<Entity>()
+        if (this.id == id)result += this
+        children.forEach{
+            result.addAll(it.getAllEntityById(id))
+        }
+        return result.toList()
     }
 
     private fun localTransform(): Mat4 {

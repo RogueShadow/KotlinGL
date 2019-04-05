@@ -40,8 +40,8 @@ class Standard(var width: Int,var height: Int): Renderer {
         }
     }
     private fun renderDepthPass(e: Entity){
-        val shader = e.components().singleOrNull{it is DefaultShader}
-        if (shader != null && !(shader as DefaultShader).castShadows)return
+        val shader = e.getComponentByType<DefaultShader>()
+        if (shader != null && !shader.castShadows)return
         e.draw(shadowMap.shader)
     }
     private fun renderFinal(e: Entity){
@@ -82,7 +82,8 @@ class Standard(var width: Int,var height: Int): Renderer {
             glClear(GL_DEPTH_BUFFER_BIT)
 
             if (LightManager.sunLamp != null) {
-                val proj = ortho(-30f, 30f, -30f, 30f, 1f, 50f)
+                val areaRadius = 40f
+                val proj = ortho(-areaRadius, areaRadius, -areaRadius, areaRadius, 1f, 50f)
                 val front = LightManager.sunLamp?.direction
                 val pos = Float3(LightManager.sunPos.x, 30f, LightManager.sunPos.z)
                 val lsm = proj * inverse(lookAt(pos, pos - front!!, Float3(0f, 1f, 0f)))

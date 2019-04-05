@@ -111,7 +111,7 @@ vec3 CalculateSunLamp(vec3 normal, vec3 viewDir){
 
     vec3 ambient = sunlamp.ambient * diffuseColor * sunlamp.diffuse;
 
-    vec3 halfwayDir = normalize(sunDir + FragPos);
+    vec3 halfwayDir = normalize(sunDir + viewDir);
     float spec = pow(max(dot(normal,halfwayDir),0.0),material.shininess);
     vec3 specular = sunlamp.specular * spec * specularColor;
 
